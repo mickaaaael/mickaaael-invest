@@ -610,30 +610,34 @@ function gS(t){return SP[t]||FB.s[t]||0;}
 function sv(id,v){document.getElementById(id).textContent=v;}
 function svc(id,v,n){const e=document.getElementById(id);e.textContent=v;e.className=cl(n);}
 
+/* CoinGecko IDs pour chaque symbol crypto */
+const CGP={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',USDC:'usd-coin',DOGE:'dogecoin',AVAX:'avalanche-2',AAVE:'aave',PENDLE:'pendle',SUI:'sui',DOT:'polkadot',LINK:'chainlink',XRP:'ripple',COOKIE:'cookie-dao',AIXBT:'aixbt-by-virtuals',FWOG:'fwog',ELIZAOS:'elizaos'};
+
 /* ===== FETCH ===== */
-// Binance: direct depuis le navigateur (pas de restriction CORS)
+// Crypto: CoinGecko direct depuis le navigateur (CORS OK, pas de rate limit)
 async function fetchBN(){
   try{
-    const re=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT');
-    if(!re.ok)throw 0;EU=1/parseFloat((await re.json()).price);
-    const syms=JSON.stringify(Object.values(BNP));
-    const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbols='+encodeURIComponent(syms));
+    const ids=Object.values(CGP).join(',');
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+encodeURIComponent(ids)+'&vs_currencies=eur');
     if(!r.ok)throw 0;
-    (await r.json()).forEach(item=>{const s=Object.keys(BNP).find(k=>BNP[k]===item.symbol);if(s)CP[s]=parseFloat(item.price)*EU;});
-    if(!CP.USDC)CP.USDC=EU;return true;
+    const j=await r.json();
+    let n=0;
+    Object.entries(j).forEach(([id,prices])=>{
+      const sym=Object.keys(CGP).find(k=>CGP[k]===id);
+      if(sym&&prices.eur){CP[sym]=prices.eur;n++;}
+    });
+    return n>0;
   }catch(e){return false;}
 }
-// Yahoo: via Apps Script proxy (évite le blocage CORS)
+// Yahoo + EUR/USD: via Apps Script proxy
 async function fetchYH(){
   try{
     const yht=getYHT();
-    if(!yht.length)return false;
     const url=GS_URL+'?action=prices&token='+encodeURIComponent(GS_TOKEN)
-      +'&tickers='+encodeURIComponent(yht.join(','));
-    const r=await fetch(url);
-    if(!r.ok)throw 0;
-    const j=await r.json();
-    if(!j.ok)throw 0;
+      +(yht.length?'&tickers='+encodeURIComponent(yht.join(',')):'');
+    const r=await fetch(url);if(!r.ok)throw 0;
+    const j=await r.json();if(!j.ok)throw 0;
+    if(j.data.eurusd)EU=j.data.eurusd;
     const yahoo=j.data.yahoo||{};
     let n=0;
     Object.entries(yahoo).forEach(([t,info])=>{
@@ -655,12 +659,12 @@ async function load(){
   const[bn,yh]=await Promise.all([fetchBN(),fetchYH()]);
   ok=true;
   const pills=[];
-  if(bn)pills.push('<span class="pill ok">Binance \u2713</span>');else pills.push('<span class="pill err">Binance \u2717</span>');
+  if(bn)pills.push('<span class="pill ok">Crypto \u2713</span>');else pills.push('<span class="pill err">Crypto \u2717</span>');
   if(yh)pills.push('<span class="pill ok">Yahoo \u2713</span>');else pills.push('<span class="pill warn">Yahoo \u2717</span>');
   pills.push('<button class="btn-refresh" onclick="load()">\u27F3 Rafraichir</button>');
   document.getElementById('pills').innerHTML=pills.join('');
   const now=new Date();
-  sv('upd',(bn?'Binance':'hors ligne')+' \u00b7 '+(yh?'Yahoo':'donnees 07/04/2026')+' \u00b7 '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
+  sv('upd',(bn?'en ligne':'hors ligne')+' \u00b7 '+(yh?'Yahoo':'donnees 07/04/2026')+' \u00b7 '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
   document.getElementById('ov-spin').style.display='none';
   document.getElementById('ov-body').style.display='block';
   rAll();
