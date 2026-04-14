@@ -611,6 +611,7 @@ function sv(id,v){document.getElementById(id).textContent=v;}
 function svc(id,v,n){const e=document.getElementById(id);e.textContent=v;e.className=cl(n);}
 
 /* ===== FETCH ===== */
+// Binance: direct depuis le navigateur (pas de restriction CORS)
 async function fetchBN(){
   try{
     const re=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT');
@@ -622,16 +623,27 @@ async function fetchBN(){
     if(!CP.USDC)CP.USDC=EU;return true;
   }catch(e){return false;}
 }
+// Yahoo: via Apps Script proxy (évite le blocage CORS)
 async function fetchYH(){
-  let n=0;const yht=getYHT();
-  await Promise.all(yht.map(async t=>{
-    try{const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(t)+'?interval=1d&range=1d');
-      if(!r.ok)return;const d=await r.json(),meta=d?.chart?.result?.[0]?.meta;if(!meta)return;
-      let px=meta.regularMarketPrice;const cur=meta.currency||'USD';
-      if(cur==='USD')px=px*EU;else if(cur==='GBp')px=px/100*(EU*1.27);
+  try{
+    const yht=getYHT();
+    if(!yht.length)return false;
+    const url=GS_URL+'?action=prices&token='+encodeURIComponent(GS_TOKEN)
+      +'&tickers='+encodeURIComponent(yht.join(','));
+    const r=await fetch(url);
+    if(!r.ok)throw 0;
+    const j=await r.json();
+    if(!j.ok)throw 0;
+    const yahoo=j.data.yahoo||{};
+    let n=0;
+    Object.entries(yahoo).forEach(([t,info])=>{
+      let px=info.price;
+      if(info.currency==='USD')px=px*EU;
+      else if(info.currency==='GBp')px=px/100*(EU*1.27);
       SP[t]=px;n++;
-    }catch(e){}
-  }));return n>0;
+    });
+    return n>0;
+  }catch(e){return false;}
 }
 
 /* ===== LOAD ===== */
