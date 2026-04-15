@@ -211,6 +211,10 @@ tfoot td{font-weight:700;border-top:1px solid var(--brd2);border-bottom:none!imp
 .card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:20px;box-shadow:var(--glow)}
 
 .chart-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:20px;margin-bottom:1rem;box-shadow:var(--glow)}
+.evo-filters{display:flex;gap:6px;flex-wrap:wrap}
+.evo-btn{font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--brd);background:transparent;color:var(--text2);cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.evo-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.evo-btn:hover:not(.active){background:rgba(255,255,255,.05)}
 
 /* === RECAP CARDS (for each tab) === */
 .recap{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:1.5rem}
@@ -357,7 +361,10 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div class="card"><div class="sl" style="margin-top:0">Performance par poche</div><div class="cw" style="height:200px"><canvas id="c-pf"></canvas></div></div>
     </div>
     <div class="chart-card" style="margin-top:1rem">
-      <div class="sl" style="margin-top:0">Evolution patrimoniale</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <div class="sl" style="margin:0">Evolution patrimoniale</div>
+        <div class="evo-filters" id="evo-filters"></div>
+      </div>
       <div class="cw"><canvas id="c-hi"></canvas></div>
       <div class="leg"><div class="lgi"><div class="lgd" style="background:var(--accent)"></div>Valeur</div><div class="lgi"><div class="lgd" style="background:var(--text3);border:1px dashed var(--text3)"></div>Investi</div></div>
     </div>
@@ -659,7 +666,7 @@ function trbGet(){
 }
 const FB={c:{BTC:58400,ETH:1730,SOL:68.6,USDC:0.917,DOGE:0.0799,AVAX:15.8,AAVE:79.5,PENDLE:2.35,SUI:1.85,DOT:3.12,LINK:7.36,XRP:1.21,COOKIE:0.038,AIXBT:0.058,FWOG:0.007,ELIZAOS:0.013},s:{'PLX.PA':9.8,'EDEN.PA':42.5,'AMZN':167,'V':255,'WPEA.PA':11.73,'CW8.PA':50,'PUST.PA':90.34,'IGLN.L':93.0,'IE000UL6CLP7.SG':38.71,'IE00BJ5JPG56.SG':4.90,'IE00BHZRQZ17.SG':34.74,'LYMD.DE':19.78,'LCUJ.DE':20.55}};
 let CP={},SP={},SP_RAW={},EU=1/1.154,port,ops,TRA=TRA_D,TRE=TRE_D,TRO=TRO_D,TRP=TRP_D,PEAD=PEAD_D,cTr='all',cCry='all',cMgr='mensuel',CH={},ok=false;
-let crySort='val',prevSnap={},hideMode=false;
+let crySort='val',prevSnap={},hideMode=false,evoFilter='all';
 let CP_USD={},CP_CHG={};
 const BANNER_YH=['^GSPC','^FCHI','CW8.PA'];
 
@@ -953,9 +960,33 @@ function rOv(){
   const perf=secs.map(s=>{const{tv,ti}=sd[s];return ti>0?+((tv-ti)/ti*100).toFixed(2):0;});
   if(CH.bp)CH.bp.destroy();
   CH.bp=new Chart(document.getElementById('c-pf'),{type:'bar',data:{labels:secs.map(s=>labs[s]),datasets:[{data:perf,backgroundColor:perf.map(v=>v>=0?'rgba(52,211,153,.65)':'rgba(248,113,113,.65)'),hoverBackgroundColor:perf.map(v=>v>=0?'rgba(52,211,153,.9)':'rgba(248,113,113,.9)'),borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TT},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>(v>=0?'+':'')+v.toFixed(1)+'%'}},x:{grid:{display:false}}}}});
-  /* Line chart */
+  /* Line chart with filters */
+  const evoKeys={all:'Tout',pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto',la:'Livret A'};
+  document.getElementById('evo-filters').innerHTML=Object.entries(evoKeys).map(([k,l])=>`<button class="evo-btn${evoFilter===k?' active':''}" onclick="setEvoFilter('${k}')">${l}</button>`).join('');
+  buildEvoChart();
+}
+
+/* ===== EVO CHART FILTER ===== */
+function setEvoFilter(k){
+  evoFilter=k;
+  document.querySelectorAll('.evo-btn').forEach(b=>b.classList.toggle('active',b.textContent==={all:'Tout',pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto',la:'Livret A'}[k]));
+  buildEvoChart();
+}
+function buildEvoChart(){
+  const histMap={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
+  let valData,invData;
+  if(evoFilter==='all'){
+    valData=HIST.map(m=>m.val);invData=HIST.map(m=>m.inv);
+  }else if(evoFilter==='la'){
+    const laVal=ls('mick_la',LA_D).val;
+    valData=HIST.map(()=>laVal);invData=HIST.map(()=>laVal);
+  }else{
+    const hk=histMap[evoFilter];
+    valData=HIST.map(m=>m[hk]?m[hk].v:0);invData=HIST.map(m=>m[hk]?m[hk].i:0);
+  }
+  const color=({all:'#5b6cf0',pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'})[evoFilter];
   if(CH.ho)CH.ho.destroy();
-  CH.ho=new Chart(document.getElementById('c-hi'),{type:'line',data:{labels:HIST.map(m=>m.m),datasets:[{data:HIST.map(m=>m.val),borderColor:'var(--accent)',backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,'rgba(91,108,240,.15)');g.addColorStop(1,'rgba(91,108,240,0)');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#5b6cf0',pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:HIST.map(m=>m.inv),borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
+  CH.ho=new Chart(document.getElementById('c-hi'),{type:'line',data:{labels:HIST.map(m=>m.m),datasets:[{data:valData,borderColor:color,backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,color+'26');g.addColorStop(1,color+'00');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:invData,borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
 }
 
 /* ===== PEE ===== */
