@@ -43,6 +43,23 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;color
 .warn{background:rgba(240,194,127,.1);color:var(--gold);border:1px solid rgba(240,194,127,.18)}
 .err{background:rgba(248,113,113,.08);color:var(--neg);border:1px solid rgba(248,113,113,.18)}
 
+/* === TICKER BANNER === */
+.ticker-wrap{overflow:hidden;background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:8px 0;margin-bottom:1rem;position:relative}
+.ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:40px;z-index:2;pointer-events:none}
+.ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--bg2),transparent)}
+.ticker-wrap::after{right:0;background:linear-gradient(90deg,transparent,var(--bg2))}
+.ticker-track{display:flex;width:max-content;animation:tickerScroll 35s linear infinite}
+.ticker-track:hover{animation-play-state:paused}
+.ticker-item{display:flex;align-items:center;gap:6px;padding:0 24px;font-size:12px;white-space:nowrap;border-right:1px solid var(--brd)}
+.ticker-item:last-child{border-right:none}
+.ticker-name{color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.ticker-price{font-weight:700;font-size:13px}
+.ticker-chg{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.ticker-chg.up{color:var(--pos);background:rgba(52,211,153,.1)}
+.ticker-chg.down{color:var(--neg);background:rgba(248,113,113,.08)}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@media(max-width:768px){.ticker-item{padding:0 16px;font-size:11px}.ticker-price{font-size:12px}}
+
 /* === TABS === */
 .tabs-wrap{position:sticky;top:0;z-index:99;margin-bottom:2rem;position:relative}
 .tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:32px;background:linear-gradient(90deg,transparent,var(--bg2) 80%);pointer-events:none;border-radius:0 var(--r) var(--r) 0;z-index:2;opacity:0;transition:opacity .3s}
@@ -305,6 +322,11 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     </div>
     <div class="upd" id="upd">Initialisation...</div>
   </div>
+</div>
+
+<!-- TICKER BANNER -->
+<div class="ticker-wrap" id="ticker-wrap" style="display:none">
+  <div class="ticker-track" id="ticker-track"></div>
 </div>
 
 <!-- TABS -->
@@ -596,7 +618,7 @@ const TRP_D=[{name:'Apollo Global',val:152.11,inv:150.0},{name:'EQT AB',val:151.
 const PEAD_D=[{name:'BNP Stoxx Europe',t:null,parts:null,val:56.95,inv:53.60},{name:'BNP S&P500 EUR (ESE)',t:null,parts:null,val:28.21,inv:28.27},{name:'Amundi Japon (TOPIX)',t:null,parts:null,val:33.50,inv:31.18},{name:'Amundi Asia ESG',t:null,parts:null,val:30.64,inv:28.67},{name:'Amundi CAC40',t:null,parts:null,val:77.20,inv:0},{name:'iShares Commodity Swap',t:null,parts:null,val:169.95,inv:0},{name:'Especes PEA',t:null,parts:null,val:9288.49,inv:9154.25}];
 const DC={binance:[{symbol:'BTC',qty:0.11992147,avgBuy:90247.80},{symbol:'ETH',qty:0.62391941,avgBuy:2671.21},{symbol:'SOL',qty:2.24248274,avgBuy:95.49},{symbol:'USDC',qty:125.93,avgBuy:0.8653},{symbol:'DOGE',qty:1299.51,avgBuy:0.24265},{symbol:'AVAX',qty:7.5346,avgBuy:25.56},{symbol:'AAVE',qty:0.35867,avgBuy:240.57},{symbol:'PENDLE',qty:27.3702,avgBuy:3.764},{symbol:'SUI',qty:31.2714,avgBuy:3.2362},{symbol:'DOT',qty:18.6123,avgBuy:3.7121},{symbol:'COOKIE',qty:1429.36,avgBuy:0.10913},{symbol:'AIXBT',qty:767.60,avgBuy:0.10245},{symbol:'FWOG',qty:2060.60,avgBuy:0.033927},{symbol:'ELIZAOS',qty:10541.82,avgBuy:0.078157}],kraken:[{symbol:'BTC',qty:0.04076563,avgBuy:71070.29},{symbol:'ETH',qty:1.08703,avgBuy:2324.27},{symbol:'LINK',qty:59.80947,avgBuy:11.20},{symbol:'SOL',qty:5.60312,avgBuy:104.37},{symbol:'XRP',qty:151.62163,avgBuy:1.64},{symbol:'COOKIE',qty:1045.444,avgBuy:0.09628}],coinbase:[{symbol:'BTC',qty:0.00010154,avgBuy:0,note:'cadeau'},{symbol:'ETH',qty:0.03999176,avgBuy:3640}],ledger:[]};
 const BNP={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',AAVE:'AAVEUSDT',PENDLE:'PENDLEUSDT',SUI:'SUIUSDT',DOT:'DOTUSDT',LINK:'LINKUSDT',XRP:'XRPUSDT',COOKIE:'COOKIEUSDT',AIXBT:'AIXBTUSDT',FWOG:'FWOGUSDT',ELIZAOS:'ELIZAUSDT'};
-function getYHT(){const s=new Set();TRA.forEach(a=>{if(a.t)s.add(a.t)});TRE.forEach(e=>{if(e.t)s.add(e.t)});PEAD.forEach(p=>{if(p.t)s.add(p.t)});return[...s];}
+function getYHT(){const s=new Set();TRA.forEach(a=>{if(a.t)s.add(a.t)});TRE.forEach(e=>{if(e.t)s.add(e.t)});PEAD.forEach(p=>{if(p.t)s.add(p.t)});BANNER_YH.forEach(t=>s.add(t));return[...s];}
 const PC2={pee:'#5b6cf0',pea:'#34d399',tr:'#c084fc',crypto:'#f0c27f'};
 const PC3={act:'#a78bfa',etf:'#5b6cf0',obl:'#f0c27f',pe:'#34d399'};
 /* TR Revenus data: index 0=Dec24, 1=Jan25 ... monthly values */
@@ -617,8 +639,10 @@ function trbGet(){
     divT:trbCumul(B.divM),sbT:trbCumul(B.sbM),ventT:trbCumul(B.ventM),fraisT:trbCumul(B.fraisM)};
 }
 const FB={c:{BTC:58400,ETH:1730,SOL:68.6,USDC:0.917,DOGE:0.0799,AVAX:15.8,AAVE:79.5,PENDLE:2.35,SUI:1.85,DOT:3.12,LINK:7.36,XRP:1.21,COOKIE:0.038,AIXBT:0.058,FWOG:0.007,ELIZAOS:0.013},s:{'PLX.PA':9.8,'EDEN.PA':42.5,'AMZN':167,'V':255,'WPEA.PA':11.73,'CW8.PA':50,'PUST.PA':90.34,'IGLN.L':93.0,'IE000UL6CLP7.SG':38.71,'IE00BJ5JPG56.SG':4.90,'IE00BHZRQZ17.SG':34.74,'LYMD.DE':19.78,'LCUJ.DE':20.55}};
-let CP={},SP={},EU=1/1.154,port,ops,TRA=TRA_D,TRE=TRE_D,TRO=TRO_D,TRP=TRP_D,PEAD=PEAD_D,cTr='all',cCry='all',cMgr='mensuel',CH={},ok=false;
+let CP={},SP={},SP_RAW={},EU=1/1.154,port,ops,TRA=TRA_D,TRE=TRE_D,TRO=TRO_D,TRP=TRP_D,PEAD=PEAD_D,cTr='all',cCry='all',cMgr='mensuel',CH={},ok=false;
 let crySort='val',prevSnap={},hideMode=false;
+let CP_USD={},CP_CHG={};
+const BANNER_YH=['^GSPC','^FCHI','CW8.PA'];
 
 /* ===== GOOGLE SHEETS SYNC ===== */
 const GS_URL='https://script.google.com/macros/s/AKfycbygkaMKV8uMKgHgjhzYHV5wPWbAIZB2O9TIAdZf8alU1ONMRLTpkKeERRzmGy4QqtWK/exec';
@@ -694,13 +718,15 @@ const CGP={BTC:'bitcoin',ETH:'ethereum',SOL:'solana',USDC:'usd-coin',DOGE:'dogec
 async function fetchBN(){
   try{
     const ids=Object.values(CGP).join(',');
-    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+encodeURIComponent(ids)+'&vs_currencies=eur');
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+encodeURIComponent(ids)+'&vs_currencies=eur,usd&include_24hr_change=true');
     if(!r.ok)throw 0;
     const j=await r.json();
     let n=0;
-    Object.entries(j).forEach(([id,prices])=>{
+    Object.entries(j).forEach(([id,data])=>{
       const sym=Object.keys(CGP).find(k=>CGP[k]===id);
-      if(sym&&prices.eur){CP[sym]=prices.eur;n++;}
+      if(sym&&data.eur){CP[sym]=data.eur;n++;}
+      if(sym&&data.usd)CP_USD[sym]=data.usd;
+      if(sym&&data.usd_24h_change!=null)CP_CHG[sym]=data.usd_24h_change;
     });
     return n>0;
   }catch(e){return false;}
@@ -720,7 +746,7 @@ async function fetchYH(){
       let px=info.price;
       if(info.currency==='USD')px=px*EU;
       else if(info.currency==='GBp')px=px/100*(EU*1.27);
-      SP[t]=px;n++;
+      SP[t]=px;SP_RAW[t]=info;n++;
     });
     return n>0;
   }catch(e){return false;}
@@ -743,7 +769,41 @@ async function load(){
   sv('upd',(bn?'en ligne':'hors ligne')+' \u00b7 '+(yh?'Yahoo':'donnees 07/04/2026')+' \u00b7 '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
   document.getElementById('ov-spin').style.display='none';
   document.getElementById('ov-body').style.display='block';
+  renderTicker();
   rAll();
+}
+
+/* ===== TICKER BANNER ===== */
+function renderTicker(){
+  const items=[];
+  // BTC USD
+  if(CP_USD.BTC){items.push({name:'BTC',price:CP_USD.BTC,chg:CP_CHG.BTC||0,cur:'$'});}
+  // ETH USD
+  if(CP_USD.ETH){items.push({name:'ETH',price:CP_USD.ETH,chg:CP_CHG.ETH||0,cur:'$'});}
+  // helper: extract change% from Yahoo raw (field name may vary)
+  function yhChg(raw){return raw.changePercent||raw.changePct||raw.regularMarketChangePercent||0;}
+  // Physical Gold
+  const goldRaw=SP_RAW['IGLN.L'];
+  if(goldRaw){items.push({name:'GOLD',price:goldRaw.price,chg:yhChg(goldRaw),cur:goldRaw.currency==='GBp'?'p':'$'});}
+  // S&P 500
+  const spRaw=SP_RAW['^GSPC'];
+  if(spRaw){items.push({name:'S&P 500',price:spRaw.price,chg:yhChg(spRaw),cur:'$'});}
+  // CAC 40
+  const cacRaw=SP_RAW['^FCHI'];
+  if(cacRaw){items.push({name:'CAC 40',price:cacRaw.price,chg:yhChg(cacRaw),cur:'€'});}
+  // MSCI World
+  const msciRaw=SP_RAW['CW8.PA'];
+  if(msciRaw){items.push({name:'MSCI World',price:msciRaw.price,chg:yhChg(msciRaw),cur:'€'});}
+
+  if(!items.length)return;
+  const html=items.map(it=>{
+    const up=it.chg>=0;
+    const sign=up?'+':'';
+    return `<div class="ticker-item"><span class="ticker-name">${it.name}</span><span class="ticker-price">${it.cur}${it.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span><span class="ticker-chg ${up?'up':'down'}">${sign}${it.chg.toFixed(2)}%</span></div>`;
+  }).join('');
+  // duplicate for seamless loop
+  document.getElementById('ticker-track').innerHTML=html+html;
+  document.getElementById('ticker-wrap').style.display='';
 }
 
 /* ===== RENDER ALL ===== */
