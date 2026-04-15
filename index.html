@@ -750,8 +750,25 @@ function rOv(){
       <div class="recap-item"><div class="recap-item-label">Total investi</div><div class="recap-item-val">${fe(gti)}</div></div>
       ${secs.map(s=>`<div class="recap-item"><div class="recap-item-label">${labs[s]}</div><div class="recap-item-val">${fe(sd[s].tv)}</div></div>`).join('')}
     </div>`;
-  /* Small metric cards */
-  document.getElementById('met-ov').innerHTML=secs.map(s=>{const pnl=sd[s].tv-sd[s].ti,pct=sd[s].ti>0?(pnl/sd[s].ti)*100:0;return`<div class="met met-${s==='crypto'?'cry':s}"><div class="mlb">${labs[s]}</div><div class="mvl">${fe(sd[s].tv)}</div><div style="font-size:12px;margin-top:4px" class="${cl(pnl)}">${(pnl>=0?'+':'')+fe(pnl)} (${fp(pct)})</div></div>`;}).join('');
+  /* Small metric cards avec YTD */
+  const secKey={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
+  document.getElementById('met-ov').innerHTML=secs.map(s=>{
+    const{tv,ti}=sd[s];
+    const pnl=tv-ti,pct=ti>0?(pnl/ti)*100:0;
+    // YTD par section
+    const k=secKey[s];
+    const ys=ytdStart&&ytdStart[k]?ytdStart[k]:{v:tv,i:ti};
+    const ytdPVs=(tv-ti)-(ys.v-ys.i);
+    const ytdPcts=ys.v>0?(ytdPVs/ys.v)*100:0;
+    return`<div class="met met-${s==='crypto'?'cry':s}">
+      <div class="mlb">${labs[s]}</div>
+      <div class="mvl">${fe(tv)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--gold);margin-top:5px;margin-bottom:2px">${curYear}</div>
+      <div style="font-size:12px" class="${cl(ytdPVs)}">${(ytdPVs>=0?'+':'')+fe(ytdPVs)} (${fp(ytdPcts)})</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;padding-top:4px;border-top:1px solid var(--brd)">Depuis le début</div>
+      <div style="font-size:12px;margin-top:2px" class="${cl(pnl)}">${(pnl>=0?'+':'')+fe(pnl)} (${fp(pct)})</div>
+    </div>`;
+  }).join('');
   /* Doughnut */
   const items=secs.map(s=>({l:labs[s],v:sd[s].tv,c:PC2[s]}));
   if(CH.cp)CH.cp.destroy();
