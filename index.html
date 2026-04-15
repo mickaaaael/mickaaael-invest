@@ -628,13 +628,13 @@ const HIST=[
 {m:'Mar 2026',inv:65486.40,val:60928.92,pnl:-4557.47,pee:{v:32899,i:31518.1},tr:{v:4038.35,i:3072.33},pea:{v:9684.94,i:9295.97},cry:{v:14306.63,i:21600}}
 ];
 const PEE=[
-{name:'Amundi Label Monetaire ESR -F',val:32919.38,inv:31518.10},
-{name:'Amundi Actions Internationales (MSCI World)',val:0,inv:0},
-{name:'CA Brio Opportunites',val:0,inv:0},
-{name:'CA Brio Actions France',val:0,inv:0},
-{name:'Amundi Label Equilibre Solidaire ESR -F',val:0,inv:0},
-{name:'Amundi Protect 90',val:0,inv:0},
-{name:'CA Brio Obligataire Diversifie',val:0,inv:0}
+{name:'Amundi Label Monetaire ESR -F',val:32919.38,inv:31518.10,parts:null,code:'QS0009080720'},
+{name:'Amundi Actions Internationales (MSCI World)',val:0,inv:0,parts:null,code:null},
+{name:'CA Brio Opportunites',val:0,inv:0,parts:null,code:null},
+{name:'CA Brio Actions France',val:0,inv:0,parts:null,code:null},
+{name:'Amundi Label Equilibre Solidaire ESR -F',val:0,inv:0,parts:null,code:null},
+{name:'Amundi Protect 90',val:0,inv:0,parts:null,code:null},
+{name:'CA Brio Obligataire Diversifie',val:0,inv:0,parts:null,code:null}
 ];
 const TRA_D=[{name:'Pluxee',t:'PLX.PA',qty:3,avgBuy:20.24,val:32.88,inv:0},{name:'Edenred',t:'EDEN.PA',qty:3,avgBuy:30.88,val:54.75,inv:0},{name:'Visa',t:'V',qty:1,avgBuy:306.95,val:264.75,inv:0}];
 const TRE_D=[{name:'Physical Gold USD',t:'IGLN.L',qty:14.423171,avgBuy:78.19,val:1133.23,inv:1127.74},{name:'Silver Miners USD',t:'IE000UL6CLP7.SG',qty:15.800275,avgBuy:37.97,val:611.63,inv:599.93},{name:'MSCI China USD',t:'IE00BJ5JPG56.SG',qty:5.438723,avgBuy:5.52,val:26.66,inv:30.02},{name:'MSCI India Swap USD (acc)',t:'LYM7.DE',qty:4.009641,avgBuy:19.96,val:64.47,inv:80.03},{name:'FTSE India USD',t:'IE00BHZRQZ17.SG',qty:0.698242,avgBuy:42.97,val:24.26,inv:30.0},{name:'MSCI Japan JPY',t:'LCUJ.DE',qty:1.076484,avgBuy:18.58,val:22.12,inv:20.0}];
@@ -666,7 +666,7 @@ function trbGet(){
 }
 const FB={c:{BTC:58400,ETH:1730,SOL:68.6,USDC:0.917,DOGE:0.0799,AVAX:15.8,AAVE:79.5,PENDLE:2.35,SUI:1.85,DOT:3.12,LINK:7.36,XRP:1.21,COOKIE:0.038,AIXBT:0.058,FWOG:0.007,ELIZAOS:0.013},s:{'PLX.PA':9.8,'EDEN.PA':42.5,'AMZN':167,'V':255,'WPEA.PA':11.73,'CW8.PA':50,'PUST.PA':90.34,'IGLN.L':93.0,'IE000UL6CLP7.SG':38.71,'IE00BJ5JPG56.SG':4.90,'IE00BHZRQZ17.SG':34.74,'LYMD.DE':19.78,'LCUJ.DE':20.55}};
 let CP={},SP={},SP_RAW={},EU=1/1.154,port,ops,TRA=TRA_D,TRE=TRE_D,TRO=TRO_D,TRP=TRP_D,PEAD=PEAD_D,cTr='all',cCry='all',cMgr='mensuel',CH={},ok=false;
-let crySort='val',prevSnap={},hideMode=false,evoFilter='all';
+let crySort='val',prevSnap={},hideMode=false,evoFilter='all',PEENAV={};
 let CP_USD={},CP_CHG={};
 const BANNER_YH=['^GSPC','^FCHI','CW8.PA'];
 
@@ -757,6 +757,22 @@ async function fetchBN(){
     return n>0;
   }catch(e){return false;}
 }
+// Fonds PEE: NAV via Yahoo Finance (recherche par nom)
+async function fetchPEEFunds(){
+  try{
+    const d=ls('mick_pee',PEE);
+    const toFetch=d.filter(f=>f.parts&&f.parts>0);
+    if(!toFetch.length)return false;
+    const names=toFetch.map(f=>f.name).join('||');
+    const r=await fetch(GS_URL+'?action=funds&token='+encodeURIComponent(GS_TOKEN)+'&names='+encodeURIComponent(names));
+    if(!r.ok)return false;
+    const j=await r.json();
+    if(!j.ok)return false;
+    Object.assign(PEENAV,j.data||{});
+    return Object.keys(PEENAV).length>0;
+  }catch(e){return false;}
+}
+
 // Yahoo + EUR/USD: via Apps Script proxy
 async function fetchYH(){
   try{
@@ -784,11 +800,12 @@ async function load(){
   document.getElementById('pills').innerHTML='<button class="btn-refresh" disabled><span class="sp"></span>Chargement...</button>';
   port=ls('mp9',JSON.parse(JSON.stringify(DC)));ops=ls('mo9',[]);loadTRB();
   TRA=ls('mick_tra',JSON.parse(JSON.stringify(TRA_D)));TRE=ls('mick_tre',JSON.parse(JSON.stringify(TRE_D)));TRO=ls('mick_tro',JSON.parse(JSON.stringify(TRO_D)));TRP=ls('mick_trp',JSON.parse(JSON.stringify(TRP_D)));PEAD=ls('mick_pead',JSON.parse(JSON.stringify(PEAD_D)));
-  const[bn,yh]=await Promise.all([fetchBN(),fetchYH()]);
+  const[bn,yh,pf]=await Promise.all([fetchBN(),fetchYH(),fetchPEEFunds()]);
   ok=true;
   const pills=[];
   if(bn)pills.push('<span class="pill ok">Crypto \u2713</span>');else pills.push('<span class="pill err">Crypto \u2717</span>');
   if(yh)pills.push('<span class="pill ok">Yahoo \u2713</span>');else pills.push('<span class="pill warn">Yahoo \u2717</span>');
+  {const hasParts=ls('mick_pee',PEE).some(f=>f.parts&&f.parts>0);if(hasParts)pills.push(pf?'<span class="pill ok">PEE \u2713</span>':'<span class="pill warn">PEE \u2717</span>');}
   pills.push('<button class="btn-refresh" onclick="load()">\u27F3 Rafraichir</button>');
   document.getElementById('pills').innerHTML=pills.join('');
   const now=new Date();
@@ -837,7 +854,7 @@ function rAll(){rOv();rPEE();rTR();rPEA();rCry();rLA();rHist();rMgr();}
 
 /* ===== SECTION CALC ===== */
 function cSec(name){
-  if(name==='pee'){const d=ls('mick_pee',PEE);return{tv:d.reduce((s,f)=>s+f.val,0),ti:d.reduce((s,f)=>s+f.inv,0)};}
+  if(name==='pee'){const d=ls('mick_pee',PEE);return{tv:d.reduce((s,f)=>{const nav=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;return s+(nav?f.parts*nav:f.val);},0),ti:d.reduce((s,f)=>s+f.inv,0)};}
   if(name==='tr'){let tv=0,ti=0;TRA.forEach(a=>{const px=gS(a.t);tv+=(px&&a.qty>0?px*a.qty:a.val);ti+=a.inv;});TRE.forEach(e=>{const px=e.t?gS(e.t):null;tv+=(px&&e.qty?px*e.qty:e.val);ti+=(e.inv);});TRO.forEach(o=>{tv+=o.val;ti+=o.inv;});TRP.forEach(p=>{tv+=p.val;ti+=p.inv;});const B=trbGet(),li=B.months.length-1;tv+=B.divT[li]+B.sbT[li]+B.ventT[li]-B.fraisT[li];return{tv,ti};}
   if(name==='pea'){let tv=0,ti=0;PEAD.forEach(p=>{const px=p.t?gS(p.t):null;tv+=(px&&p.parts?px*p.parts:p.val);ti+=p.inv;});return{tv,ti};}
   if(name==='crypto'){let tv=0,ti=0;aC().forEach(c=>{tv+=gC(c.symbol)*c.qty;ti+=c.avgBuy?c.avgBuy*c.qty:0;});return{tv,ti};}
@@ -992,7 +1009,15 @@ function buildEvoChart(){
 /* ===== PEE ===== */
 function rPEE(){
   const d=ls('mick_pee',PEE);let tv=0,ti=0,h='';
-  d.forEach(f=>{if(f.val<=0&&f.inv<=0)return;const p=f.val-f.inv,pct=f.inv>0?(p/f.inv)*100:null;tv+=f.val;ti+=f.inv;h+=`<tr><td><span class="nm">${f.name}</span></td><td>${fe(f.val)}</td><td>${f.inv>0?fe(f.inv):'—'}</td><td class="${cl(p)}">${(p>=0?'+':'')+fe(p)}</td><td class="${cl(p)}">${fp(pct)}</td></tr>`;});
+  d.forEach(f=>{
+    const navData=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name]:null;
+    const curVal=navData?+(f.parts*navData.nav).toFixed(2):f.val;
+    if(curVal<=0&&f.inv<=0)return;
+    const p=curVal-f.inv,pct=f.inv>0?(p/f.inv)*100:null;
+    tv+=curVal;ti+=f.inv;
+    const badge=navData?`<span class="sb" style="color:var(--pos);font-size:10px;margin-left:6px">\u25CF auto ${fpx(navData.nav)}/part</span>`:'';
+    h+=`<tr><td><span class="nm">${f.name}</span>${badge}</td><td>${fe(curVal)}</td><td>${f.inv>0?fe(f.inv):'—'}</td><td class="${cl(p)}">${(p>=0?'+':'')+fe(p)}</td><td class="${cl(p)}">${fp(pct)}</td></tr>`;
+  });
   document.getElementById('tb-pee').innerHTML=h;
   const tp=tv-ti,tpct=ti>0?(tp/ti)*100:0;
   sv('pee-tv',fe(tv));sv('pee-ti',fe(ti));svc('pee-pn',(tp>=0?'+':'')+fe(tp),tp);svc('pee-pc',fp(tpct),tp);
@@ -1414,7 +1439,28 @@ function rMgrPEE(){
   const d=ls('mick_pee',PEE);
   /* Formulaire mensuel : seulement les fonds actifs (val > 0) */
   let h='<div style="display:grid;gap:8px">';
-  d.forEach((f,i)=>{if(f.val>0||f.inv>0){h+=`<div style="display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px"><span style="font-size:12px;color:var(--text);font-weight:500">${f.name}</span><input id="pee-v-${i}" type="number" step="0.01" value="${f.val}" style="padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);text-align:right;font-family:inherit;outline:none"></div>`;}});
+  const IS='padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);text-align:right;font-family:inherit;outline:none;width:100%';
+  d.forEach((f,i)=>{
+    if(f.val>0||f.inv>0||(f.parts&&f.parts>0)){
+      const navData=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name]:null;
+      const computedVal=navData?+(f.parts*navData.nav).toFixed(2):null;
+      const navBadge=navData?`<div style="font-size:10px;color:var(--pos);margin-top:3px">\u25CF VL auto: ${fpx(navData.nav)} (${navData.ticker})</div>`:'';
+      h+=`<div style="display:grid;grid-template-columns:1fr 120px 150px;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px">
+        <div><span style="font-size:12px;font-weight:500">${f.name}</span>${navBadge}</div>
+        <div>
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nb parts</div>
+          <input id="pee-p-${i}" type="number" step="any" value="${f.parts||''}" placeholder="0" style="${IS}">
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Valeur${navData?' (auto)':' (EUR)'}</div>
+          ${navData
+            ?`<div style="padding:9px 12px;font-size:12px;border:1px solid rgba(52,211,153,.2);border-radius:10px;background:rgba(52,211,153,.05);color:var(--pos);text-align:right;font-weight:600">${fe(computedVal)}</div>`
+            :`<input id="pee-v-${i}" type="number" step="0.01" value="${f.val}" style="${IS}">`
+          }
+        </div>
+      </div>`;
+    }
+  });
   h+='</div>';
   document.getElementById('pee-mgr-form').innerHTML=h;
   /* Selects transfert */
@@ -1532,8 +1578,8 @@ function addPEA(){
   document.getElementById('pea-fr').value='0';rMgr();rPEA();rOv();
 }
 function delPEA(i){PEAD.splice(i,1);ss('mick_pead',PEAD);rMgr();rPEA();rOv();}
-function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const el=document.getElementById('pee-v-'+i);if(el){const v=parseFloat(el.value);return{...f,val:isNaN(v)?f.val:v};}return f;});ss('mick_pee',d);showM('Valeurs PEE sauvegardees !','s');rMgrPEE();rPEE();rOv();}
-function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv});ss('mick_pee',d);showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
+function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const pe=document.getElementById('pee-p-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const navData=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name]:null;const newVal=navData?+(newParts*navData.nav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,val:newVal};});ss('mick_pee',d);showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();}
+function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv,parts:null,code:null});ss('mick_pee',d);showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
 function delPEE(i){const d=ls('mick_pee',PEE);d.splice(i,1);ss('mick_pee',d);rMgr();rPEE();rOv();}
 function showM(msg,t){const el=document.getElementById('msg');el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
 function showTab(t){const ns=['ov','pee','tr','pea','cry','la','hist','mgr'];document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',ns[i]===t));document.querySelectorAll('.pg').forEach(el=>el.classList.remove('active'));document.getElementById('pg-'+t).classList.add('active');if(ok){if(t==='ov')rOv();if(t==='tr')rTR();if(t==='pea')rPEA();if(t==='cry')rCry();if(t==='la')rLA();if(t==='hist')rHist();if(t==='mgr')rMgr();if(t==='pee')rPEE();}}
