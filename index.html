@@ -902,7 +902,7 @@ function rOv(){
       ${secs.map(s=>`<div class="recap-item"><div class="recap-item-label">${labs[s]}</div><div class="recap-item-val">${fe(sd[s].tv)}</div></div>`).join('')}
     </div>`;
   /* 9. Today banner */
-  updateToday(gtv);
+  updateToday(gtv,sd.tr.tv,sd.crypto.tv);
   checkAlerts();
   /* Small metric cards avec YTD + trend arrows */
   const secKey={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
@@ -1486,16 +1486,22 @@ document.addEventListener('DOMContentLoaded',()=>{
 function setCrySort(s){crySort=s;document.querySelectorAll('.cry-sort').forEach(b=>b.classList.remove('active'));document.getElementById('sort-'+s).classList.add('active');rCry();}
 
 /* ===== 9. TODAY BANNER ===== */
-function updateToday(gtv){
+function updateToday(gtv,trv,cryv){
   const key='snap_'+new Date().toISOString().slice(0,10);
   const prev=sessionStorage.getItem(key);
   const bar=document.getElementById('today-bar');
-  if(!prev){sessionStorage.setItem(key,JSON.stringify({v:gtv,t:Date.now()}));bar.style.display='none';return;}
+  if(!prev){sessionStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,t:Date.now()}));bar.style.display='none';return;}
   try{
     const snap=JSON.parse(prev);
     const diff=gtv-snap.v;const pct=snap.v>0?(diff/snap.v)*100:0;
+    const trDiff=(snap.tr!=null)?trv-snap.tr:null;
+    const cryDiff=(snap.cry!=null)?cryv-snap.cry:null;
+    let parts=`<span class="today-label">Aujourd'hui</span><span class="today-val ${cl(diff)}">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:11px" class="${cl(diff)}">(${fp(pct)})</span>`;
+    if(trDiff!=null){parts+=`<span style="border-left:1px solid var(--brd);padding-left:12px;margin-left:4px;font-size:10px;color:var(--text3);font-weight:600">TR</span><span class="today-val ${cl(trDiff)}" style="font-size:13px">${(trDiff>=0?'+':'')+fe(trDiff)}</span>`;}
+    if(cryDiff!=null){parts+=`<span style="border-left:1px solid var(--brd);padding-left:12px;margin-left:4px;font-size:10px;color:var(--text3);font-weight:600">Crypto</span><span class="today-val ${cl(cryDiff)}" style="font-size:13px">${(cryDiff>=0?'+':'')+fe(cryDiff)}</span>`;}
+    parts+=`<span style="font-size:10px;color:var(--text3);margin-left:auto">depuis ${new Date(snap.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;
     bar.style.display='flex';
-    bar.innerHTML=`<span class="today-label">Aujourd'hui</span><span class="today-val ${cl(diff)}">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:11px" class="${cl(diff)}">(${fp(pct)})</span><span style="font-size:10px;color:var(--text3);margin-left:auto">depuis ${new Date(snap.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;
+    bar.innerHTML=parts;
   }catch(e){bar.style.display='none';}
 }
 
