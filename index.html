@@ -470,6 +470,7 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <button class="ptb" onclick="showMgr('tr')">Trade Republic</button>
     <button class="ptb" onclick="showMgr('pea')">PEA</button>
     <button class="ptb" onclick="showMgr('pee')">PEE</button>
+    <button class="ptb" onclick="showMgr('la')">Livret A</button>
     <button class="ptb" onclick="showMgr('alerts')">Alertes</button>
   </div>
   <div id="mgr-mensuel">
@@ -572,6 +573,15 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     </div>
     <div class="sl" style="margin-top:1.5rem">Tous les fonds PEE</div>
     <div id="pee-all-list"></div>
+  </div>
+  <div id="mgr-la" style="display:none">
+    <div class="sl" style="margin-top:.5rem">Livret A</div>
+    <div class="info">Mets a jour le solde de ton Livret A et le taux d'interet en vigueur.</div>
+    <div class="frow">
+      <div><label>Solde actuel (EUR)</label><input id="la-val" type="number" step="0.01"></div>
+      <div><label>Taux annuel (%)</label><input id="la-taux" type="number" step="0.01"></div>
+      <div style="padding-bottom:0"><button class="btnp" onclick="saveLA()">Enregistrer</button></div>
+    </div>
   </div>
   <div id="mgr-alerts" style="display:none">
     <div class="sl" style="margin-top:.5rem">Alertes de prix</div>
@@ -1262,10 +1272,10 @@ function rHist(){
 }
 
 /* ===== GERER ===== */
-function showMgr(s){cMgr=s;document.querySelectorAll('#mgr-pt .ptb').forEach((el,i)=>el.classList.toggle('active',['mensuel','crypto','tr','pea','pee','alerts'][i]===s));['mensuel','crypto','tr','pea','pee','alerts'].forEach(id=>{document.getElementById('mgr-'+id).style.display=id===s?'block':'none';});rMgr();}
+function showMgr(s){cMgr=s;document.querySelectorAll('#mgr-pt .ptb').forEach((el,i)=>el.classList.toggle('active',['mensuel','crypto','tr','pea','pee','la','alerts'][i]===s));['mensuel','crypto','tr','pea','pee','la','alerts'].forEach(id=>{document.getElementById('mgr-'+id).style.display=id===s?'block':'none';});rMgr();}
 function tglTr(){const isT=document.getElementById('op-t').value==='transfer';document.getElementById('op-tow').style.display=isT?'':'none';document.getElementById('op-pw').style.display=isT?'none':'';}
 function tglObl(){document.getElementById('tr-cpw').style.display=document.getElementById('tr-tp').value==='obl'?'':'none';}
-function rMgr(){if(cMgr==='mensuel')rMgrMensuel();else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='alerts')rMgrAlerts();else rMgrPEE();}
+function rMgr(){if(cMgr==='mensuel')rMgrMensuel();else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='la')rMgrLA();else if(cMgr==='alerts')rMgrAlerts();else rMgrPEE();}
 function rMgrMensuel(){
   let h='',n=0;
   const inp=(id,val)=>'<input id="mu-'+id+'" type="number" step="0.01" value="'+(val||'')+'" style="width:150px;padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);text-align:right;font-family:inherit;outline:none">';
@@ -1543,6 +1553,22 @@ function trend(cur,key){
   return cur>prev?'<span class="trend up">\u25B2</span>':'<span class="trend down">\u25BC</span>';
 }
 function saveSnap(key,val){prevSnap[key]=val;}
+
+/* ===== LIVRET A MANAGER ===== */
+function rMgrLA(){
+  const d=ls('mick_la',LA_D);
+  document.getElementById('la-val').value=d.val;
+  document.getElementById('la-taux').value=d.taux;
+}
+function saveLA(){
+  const val=parseFloat(document.getElementById('la-val').value);
+  const taux=parseFloat(document.getElementById('la-taux').value);
+  if(isNaN(val)||val<0){showM('Solde invalide','i');return;}
+  if(isNaN(taux)||taux<0){showM('Taux invalide','i');return;}
+  ss('mick_la',{val,taux});
+  showM('Livret A mis a jour : '+fe(val)+' a '+taux.toFixed(2)+' %','s');
+  rLA();rOv();
+}
 
 /* ===== 12. PRICE ALERTS ===== */
 function getAlerts(){return ls('mick_alerts',[]);}
