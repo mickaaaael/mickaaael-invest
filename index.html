@@ -514,7 +514,7 @@ const PEE=[
 {name:'Amundi Protect 90',val:0,inv:0},
 {name:'CA Brio Obligataire Diversifie',val:0,inv:0}
 ];
-const TRA_D=[{name:'Pluxee',t:'PLX.PA',qty:3,val:32.88,inv:0},{name:'Edenred',t:'EDEN.PA',qty:3,val:54.75,inv:0},{name:'Visa',t:'V',qty:1,val:250.05,inv:0}];
+const TRA_D=[{name:'Pluxee',t:'PLX.PA',qty:3,avgBuy:20.24,val:32.88,inv:0},{name:'Edenred',t:'EDEN.PA',qty:3,avgBuy:30.88,val:54.75,inv:0},{name:'Visa',t:'V',qty:1,avgBuy:306.95,val:250.05,inv:0}];
 const TRE_D=[{name:'Physical Gold USD',t:null,qty:14.423171,avgBuy:78.19,val:1133.23,inv:1413.30},{name:'Silver Miners USD',t:'IE000UL6CLP7.SG',qty:15.800275,avgBuy:37.97,val:611.63,inv:599.93},{name:'MSCI China USD',t:'IE00BJ5JPG56.SG',qty:5.438723,avgBuy:5.52,val:26.66,inv:30.02},{name:'MSCI India Swap USD (acc)',t:'LYMD.DE',qty:4.009641,avgBuy:19.96,val:79.33,inv:80.03},{name:'FTSE India USD',t:'IE00BHZRQZ17.SG',qty:0.698242,avgBuy:42.97,val:24.26,inv:30.0},{name:'MSCI Japan JPY',t:'LCUJ.DE',qty:1.076484,avgBuy:18.58,val:22.12,inv:20.0}];
 const TRO_D=[{name:'Air Baltic',coupon:'8%',val:112.01,inv:114.55},{name:'Roumanie',coupon:'4.5%',val:508.08,inv:484.50}];
 const TRP_D=[{name:'Apollo Global',val:152.11,inv:150.0},{name:'EQT AB',val:151.89,inv:150.0}];
@@ -800,7 +800,7 @@ function rTR(){
   let h='';const sw=s=>cTr==='all'||cTr===s;
   if(sw('act')){
     let tv=0,ti=0,ah='';
-    TRA.forEach(a=>{const px=gS(a.t),val=px&&a.qty>0?px*a.qty:a.val,p=val-a.inv,pct=a.inv>0?(p/a.inv)*100:null;tv+=val;ti+=a.inv;ah+=`<tr><td><span class="nm">${a.name}</span><br><span class="sb">${a.t} \u00b7 ${a.qty} act.</span></td><td>${fpx(px)||'—'}</td><td>${fe(val)}</td><td>${a.inv>0?fe(a.inv):'—'}</td><td class="${cl(p)}">${(p>=0?'+':'')+fe(p)}</td><td class="${cl(p)}">${fp(pct)}</td></tr>`;});
+    TRA.forEach(a=>{const px=gS(a.t),val=px&&a.qty>0?px*a.qty:a.val,cost=a.avgBuy?a.avgBuy*a.qty:(a.inv||0),p=cost>0?val-cost:null,pct=cost>0?(val-cost)/cost*100:null;tv+=val;ti+=a.inv;ah+=`<tr><td><span class="nm">${a.name}</span><br><span class="sb">${a.t} \u00b7 ${a.qty} act.</span></td><td>${fpx(px)||'—'}</td><td>${fe(val)}</td><td>${cost>0?fe(cost):'—'}</td><td class="${p!==null?cl(p):''}">${p!==null?(p>=0?'+':'')+fe(p):'—'}</td><td class="${p!==null?cl(pct):''}">${p!==null?fp(pct):'—'}</td></tr>`;});
     const tp=tv-ti,tpct=ti>0?(tp/ti)*100:0;h+=`<div class="sl">Actions</div><div class="tbl-card"><table><thead><tr><th>Titre</th><th>Prix</th><th>Valeur</th><th>Investi</th><th>+/-</th><th>Perf.</th></tr></thead><tbody>${ah}</tbody><tfoot><tr><td colspan="2">Total actions</td><td>${fe(tv)}</td><td>${fe(ti)}</td><td class="${cl(tp)}">${(tp>=0?'+':'')+fe(tp)}</td><td class="${cl(tp)}">${fp(tpct)}</td></tr></tfoot></table></div>`;
   }
   if(sw('etf')){
