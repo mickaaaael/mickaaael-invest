@@ -800,7 +800,7 @@ function rTR(){
   let h='';const sw=s=>cTr==='all'||cTr===s;
   if(sw('act')){
     let tv=0,ti=0,ah='';
-    TRA.forEach(a=>{const px=gS(a.t),val=px&&a.qty>0?px*a.qty:a.val,cost=a.avgBuy?a.avgBuy*a.qty:(a.inv||0),p=cost>0?val-cost:null,pct=cost>0?(val-cost)/cost*100:null;tv+=val;ti+=a.inv;ah+=`<tr><td><span class="nm">${a.name}</span><br><span class="sb">${a.t} \u00b7 ${a.qty} act.</span></td><td>${fpx(px)||'—'}</td><td>${fe(val)}</td><td>${cost>0?fe(cost):'—'}</td><td class="${p!==null?cl(p):''}">${p!==null?(p>=0?'+':'')+fe(p):'—'}</td><td class="${p!==null?cl(pct):''}">${p!==null?fp(pct):'—'}</td></tr>`;});
+    TRA.forEach(a=>{const px=gS(a.t),val=px&&a.qty>0?px*a.qty:a.val,cost=a.avgBuy?a.avgBuy*a.qty:(a.inv||0),p=cost>0?val-cost:null,pct=cost>0?(val-cost)/cost*100:null;tv+=val;ti+=cost;ah+=`<tr><td><span class="nm">${a.name}</span><br><span class="sb">${a.t||'—'} \u00b7 ${a.qty} act.</span></td><td>${fpx(px)||'—'}</td><td>${fe(val)}</td><td>${cost>0?fe(cost):'—'}</td><td class="${p!==null?cl(p):''}">${p!==null?(p>=0?'+':'')+fe(p):'—'}</td><td class="${p!==null?cl(pct):''}">${p!==null?fp(pct):'—'}</td></tr>`;});
     const tp=tv-ti,tpct=ti>0?(tp/ti)*100:0;h+=`<div class="sl">Actions</div><div class="tbl-card"><table><thead><tr><th>Titre</th><th>Prix</th><th>Valeur</th><th>Investi</th><th>+/-</th><th>Perf.</th></tr></thead><tbody>${ah}</tbody><tfoot><tr><td colspan="2">Total actions</td><td>${fe(tv)}</td><td>${fe(ti)}</td><td class="${cl(tp)}">${(tp>=0?'+':'')+fe(tp)}</td><td class="${cl(tp)}">${fp(tpct)}</td></tr></tfoot></table></div>`;
   }
   if(sw('etf')){
