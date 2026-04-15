@@ -26,23 +26,26 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;color
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
 
-.app{max-width:1260px;margin:0 auto;padding:1.5rem 2rem 4rem}
-@media(max-width:768px){.app{padding:1rem .8rem 3rem}}
+.app{max-width:1260px;margin:0 auto;padding:0 2rem 4rem}
+@media(max-width:768px){.app{padding:0 .8rem 3rem}}
 
-/* === HEADER === */
-.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+/* === STICKY HEADER === */
+.hdr{position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:8px 2rem;margin:0 -2rem 0;background:rgba(13,14,30,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--brd);flex-wrap:nowrap;gap:12px}
+@media(max-width:768px){.hdr{padding:8px .8rem;margin:0 -.8rem 0}}
 .hdr-left{display:flex;align-items:center;gap:14px}
-.logo{width:300px;flex-shrink:0}
-.logo img{width:100%;height:auto;display:block}
-.upd{font-size:11px;color:var(--text3);margin-top:2px}
-.pills{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-left:auto}
+.logo{width:140px;flex-shrink:0;overflow:hidden;height:50px;display:flex;align-items:center}
+.logo img{width:100%;height:auto;display:block;margin-top:-10px}
+@media(max-width:768px){.logo{width:110px;height:40px}.logo img{margin-top:-8px}}
+.upd{font-size:10px;color:var(--text3);white-space:nowrap}
+.pills{display:flex;gap:7px;flex-wrap:nowrap;align-items:center;margin-left:auto}
 .pill{font-size:10px;padding:4px 11px;border-radius:20px;font-weight:600}
 .ok{background:rgba(52,211,153,.1);color:var(--pos);border:1px solid rgba(52,211,153,.2)}
 .warn{background:rgba(240,194,127,.1);color:var(--gold);border:1px solid rgba(240,194,127,.18)}
 .err{background:rgba(248,113,113,.08);color:var(--neg);border:1px solid rgba(248,113,113,.18)}
 
 /* === TABS === */
-.tabs{display:flex;overflow-x:auto;gap:2px;margin-bottom:2rem;padding:4px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--brd);scrollbar-width:none}
+.tabs{position:sticky;top:67px;z-index:99;display:flex;overflow-x:auto;gap:2px;margin-bottom:2rem;padding:4px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--brd);scrollbar-width:none}
+@media(max-width:768px){.tabs{top:57px}}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:10px 18px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text3);border-radius:10px;white-space:nowrap;transition:all .25s;letter-spacing:-.01em;font-family:inherit}
 .tab:hover{color:var(--text2);background:rgba(255,255,255,.03)}
@@ -244,15 +247,13 @@ a,button,input,select{transition:all .15s ease}
 
 <div class="app" id="main-app" style="display:none">
 
-<!-- HEADER -->
+<!-- HEADER (sticky) -->
 <div class="hdr">
   <div class="hdr-left">
     <div class="logo"><img src="logo2.png" alt="Mick Finance"></div>
   </div>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-    <div class="pills" id="pills"><button class="btn-refresh" onclick="load()"><span class="sp"></span>Chargement</button></div>
-    <div class="upd" id="upd">Initialisation...</div>
-  </div>
+  <div class="upd" id="upd">Initialisation...</div>
+  <div class="pills" id="pills"><button class="btn-refresh" onclick="load()"><span class="sp"></span>Chargement</button></div>
 </div>
 
 <!-- TABS -->
