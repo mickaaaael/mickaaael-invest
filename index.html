@@ -50,15 +50,15 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;color
 .ticker-wrap::after{right:0;background:linear-gradient(90deg,transparent,var(--bg2))}
 .ticker-track{display:flex;width:max-content;animation:tickerScroll 35s linear infinite}
 .ticker-track:hover{animation-play-state:paused}
-.ticker-item{display:flex;align-items:center;gap:6px;padding:0 24px;font-size:12px;white-space:nowrap;border-right:1px solid var(--brd)}
+.ticker-item{display:flex;align-items:center;gap:8px;padding:0 28px;font-size:14px;white-space:nowrap;border-right:1px solid var(--brd)}
 .ticker-item:last-child{border-right:none}
-.ticker-name{color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
-.ticker-price{font-weight:700;font-size:13px}
-.ticker-chg{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.ticker-name{color:#e2e8f0;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.ticker-price{font-weight:700;font-size:15px;color:#fff}
+.ticker-chg{font-size:12px;font-weight:700;padding:3px 8px;border-radius:4px}
 .ticker-chg.up{color:var(--pos);background:rgba(52,211,153,.1)}
 .ticker-chg.down{color:var(--neg);background:rgba(248,113,113,.08)}
 @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-@media(max-width:768px){.ticker-item{padding:0 16px;font-size:11px}.ticker-price{font-size:12px}}
+@media(max-width:768px){.ticker-item{padding:0 18px}.ticker-name{font-size:11px}.ticker-price{font-size:13px}.ticker-chg{font-size:11px}}
 
 /* === TABS === */
 .tabs-wrap{position:sticky;top:0;z-index:99;margin-bottom:2rem;position:relative}
