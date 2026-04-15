@@ -27,26 +27,24 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;color
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
 
-.app{max-width:1260px;margin:0 auto;padding:0 2rem 4rem}
-@media(max-width:768px){.app{padding:0 .8rem 3rem}}
+.app{max-width:1260px;margin:0 auto;padding:1.5rem 2rem 4rem}
+@media(max-width:768px){.app{padding:1rem .8rem 3rem}}
 
-/* === STICKY HEADER === */
-.hdr{position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:8px 2rem;margin:0 -2rem 0;background:rgba(13,14,30,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--brd);flex-wrap:nowrap;gap:12px}
-@media(max-width:768px){.hdr{padding:8px .8rem;margin:0 -.8rem 0}}
+/* === HEADER === */
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
 .hdr-left{display:flex;align-items:center;gap:14px}
-.logo{width:300px;flex-shrink:0;height:70px;display:flex;align-items:center}
-.logo img{width:100%;height:auto;display:block}
-@media(max-width:768px){.logo{width:120px;height:44px}.logo img{margin-top:-6px}}
-.upd{font-size:10px;color:var(--text3);white-space:nowrap}
-.pills{display:flex;gap:7px;flex-wrap:nowrap;align-items:center;margin-left:auto}
+.logo{width:300px;flex-shrink:0;overflow:hidden}
+.logo img{width:100%;height:auto;display:block;margin-top:-12%;margin-bottom:-18%}
+@media(max-width:768px){.logo{width:200px}}
+.upd{font-size:11px;color:var(--text3);margin-top:2px}
+.pills{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-left:auto}
 .pill{font-size:10px;padding:4px 11px;border-radius:20px;font-weight:600}
 .ok{background:rgba(52,211,153,.1);color:var(--pos);border:1px solid rgba(52,211,153,.2)}
 .warn{background:rgba(240,194,127,.1);color:var(--gold);border:1px solid rgba(240,194,127,.18)}
 .err{background:rgba(248,113,113,.08);color:var(--neg);border:1px solid rgba(248,113,113,.18)}
 
 /* === TABS === */
-.tabs-wrap{position:sticky;top:67px;z-index:99;margin-bottom:2rem;position:relative}
-@media(max-width:768px){.tabs-wrap{top:57px}}
+.tabs-wrap{position:sticky;top:0;z-index:99;margin-bottom:2rem;position:relative}
 .tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:32px;background:linear-gradient(90deg,transparent,var(--bg2) 80%);pointer-events:none;border-radius:0 var(--r) var(--r) 0;z-index:2;opacity:0;transition:opacity .3s}
 .tabs-wrap.show-fade::after{opacity:1}
 .tabs{display:flex;overflow-x:auto;gap:2px;padding:4px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--brd);scrollbar-width:none}
@@ -295,14 +293,18 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
 
 <div class="app" id="main-app" style="display:none">
 
-<!-- HEADER (sticky) -->
+<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-left">
     <div class="logo"><img src="logo2.png" alt="Mick Finance"></div>
   </div>
-  <div class="upd" id="upd">Initialisation...</div>
-  <div class="pills" id="pills"><button class="btn-refresh" onclick="load()"><span class="sp"></span>Chargement</button></div>
-  <button class="btn-eye" onclick="toggleHide()" title="Masquer/afficher les montants" id="btn-eye">&#128065;</button>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+    <div style="display:flex;gap:7px;align-items:center">
+      <div class="pills" id="pills"><button class="btn-refresh" onclick="load()"><span class="sp"></span>Chargement</button></div>
+      <button class="btn-eye" onclick="toggleHide()" title="Masquer/afficher les montants" id="btn-eye">&#128065;</button>
+    </div>
+    <div class="upd" id="upd">Initialisation...</div>
+  </div>
 </div>
 
 <!-- TABS -->
