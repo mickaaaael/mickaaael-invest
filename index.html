@@ -722,11 +722,31 @@ function rOv(){
   const secs=['pee','tr','pea','crypto'],labs={pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto'};
   let gtv=0,gti=0;const sd={};secs.forEach(s=>{sd[s]=cSec(s);gtv+=sd[s].tv;gti+=sd[s].ti;});
   const gp=gtv-gti,gpct=gti>0?(gp/gti)*100:0;
+  /* YTD : point de départ = fin Dec 2025 */
+  const curYear=new Date().getFullYear();
+  const ytdStart=HIST.slice().reverse().find(h=>h.m.includes(String(curYear-1)));
+  const ytdValStart=ytdStart?ytdStart.val:gtv;
+  const ytdInvStart=ytdStart?ytdStart.inv:gti;
+  const ytdVariation=gtv-ytdValStart;
+  const ytdApports=gti-ytdInvStart;
+  const ytdPV=ytdVariation-ytdApports;
+  const ytdPVpct=ytdValStart>0?(ytdPV/ytdValStart)*100:0;
   /* Hero */
   document.getElementById('hero-ov').innerHTML=`
-    <div class="hero-top"><span class="hero-val">${fe(gtv)}</span><span class="hero-pnl ${cl(gp)}">${(gp>=0?'+':'')+fe(gp)} (${fp(gpct)})</span></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.8rem">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:rgba(240,194,127,.1);border:1px solid rgba(240,194,127,.2);border-radius:20px;padding:3px 10px">${curYear} — Année en cours</span>
+    </div>
+    <div class="hero-top"><span class="hero-val">${fe(gtv)}</span><span class="hero-pnl ${cl(ytdPV)}">${(ytdPV>=0?'+':'')+fe(ytdPV)} (${fp(ytdPVpct)})</span></div>
     <div class="hero-sub">Patrimoine total &mdash; ${new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</div>
-    <div style="display:flex;gap:28px;flex-wrap:wrap">
+    <div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:.6rem">
+      <div class="recap-item"><div class="recap-item-label">Apports ${curYear}</div><div class="recap-item-val ${cl(ytdApports)}">${(ytdApports>=0?'+':'')+fe(ytdApports)}</div></div>
+      <div class="recap-item"><div class="recap-item-label">Variation valeur ${curYear}</div><div class="recap-item-val ${cl(ytdVariation)}">${(ytdVariation>=0?'+':'')+fe(ytdVariation)}</div></div>
+      <div class="recap-item"><div class="recap-item-label">+/- Value ${curYear}</div><div class="recap-item-val ${cl(ytdPV)}">${(ytdPV>=0?'+':'')+fe(ytdPV)}</div></div>
+    </div>
+    <div style="border-top:1px solid var(--brd);margin:1.2rem 0"></div>
+    <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:.8rem">Depuis le début</div>
+    <div class="hero-top" style="font-size:clamp(1.4rem,3vw,2rem)"><span class="hero-val">${fe(gtv)}</span><span class="hero-pnl ${cl(gp)}" style="font-size:clamp(.85rem,2vw,1.1rem)">${(gp>=0?'+':'')+fe(gp)} (${fp(gpct)})</span></div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:.6rem">
       <div class="recap-item"><div class="recap-item-label">Total investi</div><div class="recap-item-val">${fe(gti)}</div></div>
       ${secs.map(s=>`<div class="recap-item"><div class="recap-item-label">${labs[s]}</div><div class="recap-item-val">${fe(sd[s].tv)}</div></div>`).join('')}
     </div>`;
