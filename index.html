@@ -691,8 +691,22 @@ function cTRsub(){
 }
 
 /* ===== RECAP CARD BUILDER ===== */
-function buildRecap(id,label,tv,ti){
+function buildRecap(id,label,tv,ti,histKey){
   const pnl=tv-ti,pct=ti>0?(pnl/ti)*100:0;
+  let ytdHTML='';
+  if(histKey&&typeof HIST!=='undefined'){
+    const curYear=new Date().getFullYear();
+    const ytdStart=HIST.slice().reverse().find(h=>h.m&&h.m.includes(String(curYear-1)));
+    const ys=ytdStart&&ytdStart[histKey]?ytdStart[histKey]:null;
+    if(ys){
+      const ytdPV=(tv-ti)-(ys.v-ys.i);
+      const ytdPct=ys.v>0?(ytdPV/ys.v)*100:0;
+      ytdHTML=`<div style="width:100%;border-top:1px solid var(--brd);margin-top:10px;padding-top:10px;display:flex;gap:24px;flex-wrap:wrap">
+        <div class="recap-item"><div class="recap-item-label" style="color:var(--gold)">+/- Value ${curYear}</div><div class="recap-item-val ${cl(ytdPV)}">${(ytdPV>=0?'+':'')+fe(ytdPV)}</div></div>
+        <div class="recap-item"><div class="recap-item-label" style="color:var(--gold)">Performance ${curYear}</div><div class="recap-item-val ${cl(ytdPct)}">${fp(ytdPct)}</div></div>
+      </div>`;
+    }
+  }
   document.getElementById(id).innerHTML=`
     <div class="recap-label">${label}</div>
     <div class="recap-val">${fe(tv)}</div>
@@ -700,7 +714,7 @@ function buildRecap(id,label,tv,ti){
       <div class="recap-item"><div class="recap-item-label">Investi</div><div class="recap-item-val">${fe(ti)}</div></div>
       <div class="recap-item"><div class="recap-item-label">+/- Value</div><div class="recap-item-val ${cl(pnl)}">${(pnl>=0?'+':'')+fe(pnl)}</div></div>
       <div class="recap-item"><div class="recap-item-label">Performance</div><div class="recap-item-val ${cl(pct)}">${fp(pct)}</div></div>
-    </div>`;
+    </div>${ytdHTML}`;
 }
 
 /* ===== MINI DOUGHNUT BUILDER ===== */
@@ -791,7 +805,7 @@ function rPEE(){
   const tp=tv-ti,tpct=ti>0?(tp/ti)*100:0;
   sv('pee-tv',fe(tv));sv('pee-ti',fe(ti));svc('pee-pn',(tp>=0?'+':'')+fe(tp),tp);svc('pee-pc',fp(tpct),tp);
   /* Recap */
-  buildRecap('recap-pee','Plan Epargne Entreprise',tv,ti);
+  buildRecap('recap-pee','Plan Epargne Entreprise',tv,ti,'pee');
   /* Mini donut: show invested vs gains */
   const items=d.filter(f=>f.val>0).map(f=>({l:f.name.length>25?f.name.slice(0,22)+'...':f.name,v:f.val,c:'#5b6cf0'}));
   if(items.length===1){
@@ -826,7 +840,7 @@ function rTRBonus(){
 function rTR(){
   /* Recap */
   const sec=cSec('tr');
-  buildRecap('recap-tr','Trade Republic',sec.tv,sec.ti);
+  buildRecap('recap-tr','Trade Republic',sec.tv,sec.ti,'tr');
   /* Revenus & Bonus */
   rTRBonus();
   /* Mini donut by sub-type */
@@ -868,7 +882,7 @@ function rPEA(){
   const tp=tv-ti,tpct=ti>0?(tp/ti)*100:0;
   sv('pea-tv',fe(tv));sv('pea-ti',fe(ti));svc('pea-pn',(tp>=0?'+':'')+fe(tp),tp);svc('pea-pc',fp(tpct),tp);
   /* Recap */
-  buildRecap('recap-pea','Plan Epargne en Actions',tv,ti);
+  buildRecap('recap-pea','Plan Epargne en Actions',tv,ti,'pea');
   /* Mini donut by position */
   const cols=['#34d399','#5eead4','#5b6cf0','#a78bfa','#f0c27f','#f87171','#8b7cf6','#fbbf24'];
   items.forEach((it,i)=>it.c=cols[i%cols.length]);
@@ -889,7 +903,7 @@ function rCry(){
   const ctp=ctv-cti,ctpct=cti>0?(ctp/cti)*100:0;
   sv('cs-tv',fe(ctv));sv('cs-ti',fe(cti));svc('cs-pn',(ctp>=0?'+':'')+fe(ctp),ctp);svc('cs-pc',fp(ctpct),ctp);
   /* Recap */
-  buildRecap('recap-cry','Crypto',ctv,cti);
+  buildRecap('recap-cry','Crypto',ctv,cti,'cry');
   /* Mini donut top 5 + others */
   const cryItems=[];const cols=['#f0c27f','#5b6cf0','#a78bfa','#34d399','#f87171','#555770'];
   rows.slice(0,5).forEach((r,i)=>{const val=gC(r.s)*r.qty;cryItems.push({l:r.s,v:val,c:cols[i]});});
