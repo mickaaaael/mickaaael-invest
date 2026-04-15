@@ -102,8 +102,9 @@ tr:hover td{background:rgba(91,108,240,.03)}
 tr:last-child td{border-bottom:none}
 tfoot td{font-weight:700;border-top:1px solid var(--brd2);border-bottom:none!important;background:rgba(91,108,240,.04)}
 
-.tbl-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:1rem;box-shadow:var(--glow)}
-.tbl-card table{margin:0;min-width:500px}
+.tbl-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);overflow:hidden;margin-bottom:1rem;box-shadow:var(--glow)}
+@media(max-width:768px){.tbl-card{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}.tbl-card table{min-width:520px}}
+.tbl-card table{margin:0}
 .tbl-card th{background:var(--bg3)}
 .tbl-card tfoot td{background:var(--bg3)}
 
