@@ -100,6 +100,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;color
 .met-tr::before{background:linear-gradient(90deg,#8b7cf6,#c084fc);opacity:1}
 .met-pea::before{background:linear-gradient(90deg,#34d399,#5eead4);opacity:1}
 .met-cry::before{background:linear-gradient(90deg,#f0c27f,#fbbf24);opacity:1}
+.met-la::before{background:linear-gradient(90deg,#60a5fa,#93c5fd);opacity:1}
 
 .pos{color:var(--pos)}.neg{color:var(--neg)}
 
@@ -193,6 +194,7 @@ tfoot td{font-weight:700;border-top:1px solid var(--brd2);border-bottom:none!imp
 .bilan-sec.sec-tr::before{background:linear-gradient(90deg,#8b7cf6,#c084fc)}
 .bilan-sec.sec-pea::before{background:linear-gradient(90deg,#34d399,#5eead4)}
 .bilan-sec.sec-cry::before{background:linear-gradient(90deg,#f0c27f,#fbbf24)}
+.bilan-sec.sec-la::before{background:linear-gradient(90deg,#60a5fa,#93c5fd)}
 .bilan-sec-name{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px}
 .bilan-sec-val{font-size:15px;font-weight:700;margin-bottom:2px}
 .bilan-sec-row{display:flex;gap:12px;flex-wrap:wrap}
@@ -337,6 +339,7 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <button class="tab" onclick="showTab('tr')">Trade Republic</button>
     <button class="tab" onclick="showTab('pea')">PEA</button>
     <button class="tab" onclick="showTab('cry')">Crypto</button>
+    <button class="tab" onclick="showTab('la')">Livret A</button>
     <button class="tab" onclick="showTab('hist')">Historique</button>
     <button class="tab" onclick="showTab('mgr')">Gerer</button>
   </div>
@@ -435,6 +438,11 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
   <div class="tbl-card"><table><thead><tr><th>Crypto</th><th>Plateforme</th><th>Qte</th><th>Prix</th><th>Achat moy.</th><th>Valeur</th><th>Investi</th><th>+/- value</th><th>Perf.</th></tr></thead>
   <tbody id="tb-dt"></tbody>
   <tfoot><tr><td colspan="5">Total</td><td id="dt-tv"></td><td id="dt-ti"></td><td id="dt-pn"></td><td id="dt-pc"></td></tr></tfoot></table></div>
+</div>
+
+<!-- ==================== LIVRET A ==================== -->
+<div class="pg" id="pg-la">
+  <div id="la-body"></div>
 </div>
 
 <!-- ==================== HISTORIQUE ==================== -->
@@ -619,7 +627,8 @@ const PEAD_D=[{name:'BNP Stoxx Europe',t:null,parts:null,val:56.95,inv:53.60},{n
 const DC={binance:[{symbol:'BTC',qty:0.11992147,avgBuy:90247.80},{symbol:'ETH',qty:0.62391941,avgBuy:2671.21},{symbol:'SOL',qty:2.24248274,avgBuy:95.49},{symbol:'USDC',qty:125.93,avgBuy:0.8653},{symbol:'DOGE',qty:1299.51,avgBuy:0.24265},{symbol:'AVAX',qty:7.5346,avgBuy:25.56},{symbol:'AAVE',qty:0.35867,avgBuy:240.57},{symbol:'PENDLE',qty:27.3702,avgBuy:3.764},{symbol:'SUI',qty:31.2714,avgBuy:3.2362},{symbol:'DOT',qty:18.6123,avgBuy:3.7121},{symbol:'COOKIE',qty:1429.36,avgBuy:0.10913},{symbol:'AIXBT',qty:767.60,avgBuy:0.10245},{symbol:'FWOG',qty:2060.60,avgBuy:0.033927},{symbol:'ELIZAOS',qty:10541.82,avgBuy:0.078157}],kraken:[{symbol:'BTC',qty:0.04076563,avgBuy:71070.29},{symbol:'ETH',qty:1.08703,avgBuy:2324.27},{symbol:'LINK',qty:59.80947,avgBuy:11.20},{symbol:'SOL',qty:5.60312,avgBuy:104.37},{symbol:'XRP',qty:151.62163,avgBuy:1.64},{symbol:'COOKIE',qty:1045.444,avgBuy:0.09628}],coinbase:[{symbol:'BTC',qty:0.00010154,avgBuy:0,note:'cadeau'},{symbol:'ETH',qty:0.03999176,avgBuy:3640}],ledger:[]};
 const BNP={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',AAVE:'AAVEUSDT',PENDLE:'PENDLEUSDT',SUI:'SUIUSDT',DOT:'DOTUSDT',LINK:'LINKUSDT',XRP:'XRPUSDT',COOKIE:'COOKIEUSDT',AIXBT:'AIXBTUSDT',FWOG:'FWOGUSDT',ELIZAOS:'ELIZAUSDT'};
 function getYHT(){const s=new Set();TRA.forEach(a=>{if(a.t)s.add(a.t)});TRE.forEach(e=>{if(e.t)s.add(e.t)});PEAD.forEach(p=>{if(p.t)s.add(p.t)});BANNER_YH.forEach(t=>s.add(t));return[...s];}
-const PC2={pee:'#5b6cf0',pea:'#34d399',tr:'#c084fc',crypto:'#f0c27f'};
+const LA_D={val:5700.90,taux:1.5};
+const PC2={pee:'#5b6cf0',pea:'#34d399',tr:'#c084fc',crypto:'#f0c27f',la:'#60a5fa'};
 const PC3={act:'#a78bfa',etf:'#5b6cf0',obl:'#f0c27f',pe:'#34d399'};
 /* TR Revenus data: index 0=Dec24, 1=Jan25 ... monthly values */
 const TR_BONUS_D={
@@ -807,7 +816,7 @@ function renderTicker(){
 }
 
 /* ===== RENDER ALL ===== */
-function rAll(){rOv();rPEE();rTR();rPEA();rCry();rHist();rMgr();}
+function rAll(){rOv();rPEE();rTR();rPEA();rCry();rLA();rHist();rMgr();}
 
 /* ===== SECTION CALC ===== */
 function cSec(name){
@@ -815,6 +824,7 @@ function cSec(name){
   if(name==='tr'){let tv=0,ti=0;TRA.forEach(a=>{const px=gS(a.t);tv+=(px&&a.qty>0?px*a.qty:a.val);ti+=a.inv;});TRE.forEach(e=>{const px=e.t?gS(e.t):null;tv+=(px&&e.qty?px*e.qty:e.val);ti+=(e.inv);});TRO.forEach(o=>{tv+=o.val;ti+=o.inv;});TRP.forEach(p=>{tv+=p.val;ti+=p.inv;});const B=trbGet(),li=B.months.length-1;tv+=B.divT[li]+B.sbT[li]+B.ventT[li]-B.fraisT[li];return{tv,ti};}
   if(name==='pea'){let tv=0,ti=0;PEAD.forEach(p=>{const px=p.t?gS(p.t):null;tv+=(px&&p.parts?px*p.parts:p.val);ti+=p.inv;});return{tv,ti};}
   if(name==='crypto'){let tv=0,ti=0;aC().forEach(c=>{tv+=gC(c.symbol)*c.qty;ti+=c.avgBuy?c.avgBuy*c.qty:0;});return{tv,ti};}
+  if(name==='la'){const d=ls('mick_la',LA_D);return{tv:d.val,ti:d.val};}
   return{tv:0,ti:0};
 }
 /* TR sub-section calc */
@@ -870,7 +880,7 @@ const TT={backgroundColor:'#1e2146',titleColor:'#eeeef4',bodyColor:'#eeeef4',bor
 
 /* ===== VUE GLOBALE ===== */
 function rOv(){
-  const secs=['pee','tr','pea','crypto'],labs={pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto'};
+  const secs=['pee','tr','pea','crypto','la'],labs={pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto',la:'Livret A'};
   let gtv=0,gti=0;const sd={};secs.forEach(s=>{sd[s]=cSec(s);gtv+=sd[s].tv;gti+=sd[s].ti;});
   const gp=gtv-gti,gpct=gti>0?(gp/gti)*100:0;
   /* YTD : point de départ = fin Dec 2025 */
@@ -905,8 +915,8 @@ function rOv(){
   updateToday(gtv,sd.tr.tv,sd.crypto.tv);
   checkAlerts();
   /* Small metric cards avec YTD + trend arrows */
-  const secKey={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
-  const dotColors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f'};
+  const secKey={pee:'pee',tr:'tr',pea:'pea',crypto:'cry',la:'la'};
+  const dotColors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'};
   document.getElementById('met-ov').innerHTML=secs.map(s=>{
     const{tv,ti}=sd[s];
     const pnl=tv-ti,pct=ti>0?(pnl/ti)*100:0;
@@ -1065,6 +1075,27 @@ function rCry(){
   document.getElementById('tb-dt').innerHTML=dh;
   const dtp=dtv-dti,dtpct=dti>0?(dtp/dti)*100:0;
   sv('dt-tv',fe(dtv));sv('dt-ti',fe(dti));svc('dt-pn',(dtp>=0?'+':'')+fe(dtp),dtp);svc('dt-pc',fp(dtpct),dtp);
+}
+
+/* ===== LIVRET A ===== */
+function rLA(){
+  const d=ls('mick_la',LA_D);
+  const taux=d.taux||1.5;
+  const intAnnuel=d.val*taux/100;
+  const intMensuel=intAnnuel/12;
+  document.getElementById('la-body').innerHTML=`
+    <div class="recap" style="border-top:3px solid #60a5fa">
+      <div class="recap-main">
+        <div class="recap-label">Livret A</div>
+        <div class="recap-val">${fe(d.val)}</div>
+        <div class="recap-row">
+          <div class="recap-item"><div class="recap-item-label">Taux annuel</div><div class="recap-item-val" style="color:#60a5fa">${taux.toFixed(2)} %</div></div>
+          <div class="recap-item"><div class="recap-item-label">Interets estimes / an</div><div class="recap-item-val pos">+${fe(intAnnuel)}</div></div>
+          <div class="recap-item"><div class="recap-item-label">Interets estimes / mois</div><div class="recap-item-val pos">+${fe(intMensuel)}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="info">Le Livret A est garanti par l'Etat. Les interets sont calcules par quinzaine et verses au 31 decembre. Taux en vigueur : ${taux} %.</div>`;
 }
 
 /* ===== HISTORIQUE ===== */
@@ -1464,7 +1495,7 @@ function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const el=document.getE
 function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv});ss('mick_pee',d);showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
 function delPEE(i){const d=ls('mick_pee',PEE);d.splice(i,1);ss('mick_pee',d);rMgr();rPEE();rOv();}
 function showM(msg,t){const el=document.getElementById('msg');el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
-function showTab(t){const ns=['ov','pee','tr','pea','cry','hist','mgr'];document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',ns[i]===t));document.querySelectorAll('.pg').forEach(el=>el.classList.remove('active'));document.getElementById('pg-'+t).classList.add('active');if(ok){if(t==='ov')rOv();if(t==='tr')rTR();if(t==='pea')rPEA();if(t==='cry')rCry();if(t==='hist')rHist();if(t==='mgr')rMgr();if(t==='pee')rPEE();}}
+function showTab(t){const ns=['ov','pee','tr','pea','cry','la','hist','mgr'];document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',ns[i]===t));document.querySelectorAll('.pg').forEach(el=>el.classList.remove('active'));document.getElementById('pg-'+t).classList.add('active');if(ok){if(t==='ov')rOv();if(t==='tr')rTR();if(t==='pea')rPEA();if(t==='cry')rCry();if(t==='la')rLA();if(t==='hist')rHist();if(t==='mgr')rMgr();if(t==='pee')rPEE();}}
 
 /* ===== 10. HIDE AMOUNTS ===== */
 function toggleHide(){hideMode=!hideMode;document.body.classList.toggle('hide-amounts',hideMode);document.getElementById('btn-eye').innerHTML=hideMode?'&#128064;':'&#128065;';}
