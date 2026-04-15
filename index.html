@@ -637,7 +637,7 @@ async function fetchYH(){
       +(yht.length?'&tickers='+encodeURIComponent(yht.join(',')):'');
     const r=await fetch(url);if(!r.ok)throw 0;
     const j=await r.json();if(!j.ok)throw 0;
-    if(j.data.eurusd)EU=j.data.eurusd;
+    if(j.data.eurusd)EU=1/j.data.eurusd;
     const yahoo=j.data.yahoo||{};
     let n=0;
     Object.entries(yahoo).forEach(([t,info])=>{
