@@ -562,7 +562,11 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="sl" style="margin-top:.5rem">Mise a jour valeurs PEE</div>
     <div class="info">Saisir les valeurs actuelles (depuis votre espace bancaire). Seuls les fonds avec une valeur > 0 sont affiches.</div>
     <div id="pee-mgr-form"></div>
-    <button class="btnp" onclick="savePEE()" style="margin-top:10px">Enregistrer</button>
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <button class="btnp" onclick="savePEE()">Enregistrer</button>
+      <button id="pee-test-btn" class="btnp" onclick="testPEENav()" style="background:rgba(91,108,240,.15);border:1px solid rgba(91,108,240,.3)">Tester la mise a jour NAV</button>
+    </div>
+    <div id="pee-nav-result"></div>
     <div class="sl" style="margin-top:1.5rem">Transfert entre fonds</div>
     <div class="info">Transferer un montant d'un fonds vers un autre. La valeur et l'investi seront mis a jour automatiquement.</div>
     <div class="frow">
@@ -757,20 +761,50 @@ async function fetchBN(){
     return n>0;
   }catch(e){return false;}
 }
-// Fonds PEE: NAV via Yahoo Finance (recherche par nom)
+// Fonds PEE: NAV via Quantalys (code QS) ou Yahoo Finance
 async function fetchPEEFunds(){
   try{
     const d=ls('mick_pee',PEE);
     const toFetch=d.filter(f=>f.parts&&f.parts>0);
     if(!toFetch.length)return false;
     const names=toFetch.map(f=>f.name).join('||');
-    const r=await fetch(GS_URL+'?action=funds&token='+encodeURIComponent(GS_TOKEN)+'&names='+encodeURIComponent(names));
+    const codes=toFetch.map(f=>f.code||'').join('||');
+    const r=await fetch(GS_URL+'?action=funds&token='+encodeURIComponent(GS_TOKEN)+'&names='+encodeURIComponent(names)+'&codes='+encodeURIComponent(codes));
     if(!r.ok)return false;
     const j=await r.json();
     if(!j.ok)return false;
     Object.assign(PEENAV,j.data||{});
     return Object.keys(PEENAV).length>0;
   }catch(e){return false;}
+}
+async function testPEENav(){
+  const btn=document.getElementById('pee-test-btn');
+  const res=document.getElementById('pee-nav-result');
+  btn.disabled=true;btn.textContent='Chargement...';
+  res.innerHTML='';
+  try{
+    const d=ls('mick_pee',PEE);
+    const toFetch=d.filter(f=>f.parts&&f.parts>0);
+    if(!toFetch.length){res.innerHTML='<div style="color:var(--gold);padding:10px;background:var(--bg3);border-radius:8px;font-size:12px">Aucun fonds avec un nombre de parts renseigne. Entrez vos parts ci-dessus et sauvegardez d\'abord.</div>';btn.disabled=false;btn.textContent='Tester la mise a jour NAV';return;}
+    const names=toFetch.map(f=>f.name).join('||');
+    const codes=toFetch.map(f=>f.code||'').join('||');
+    const url=GS_URL+'?action=funds&token='+encodeURIComponent(GS_TOKEN)+'&names='+encodeURIComponent(names)+'&codes='+encodeURIComponent(codes);
+    const r=await fetch(url);
+    if(!r.ok){res.innerHTML=`<div style="color:var(--neg);padding:10px;background:var(--bg3);border-radius:8px;font-size:12px">Erreur HTTP ${r.status} — verifiez que le script GAS est bien deploye.</div>`;btn.disabled=false;btn.textContent='Tester la mise a jour NAV';return;}
+    const j=await r.json();
+    let h='<div style="display:grid;gap:6px;margin-top:8px">';
+    if(j.debug&&j.debug.length){h+='<div style="background:var(--bg3);border-radius:8px;padding:10px;font-size:11px;color:var(--text2);line-height:1.6">';j.debug.forEach(line=>{h+=`<div>${line}</div>`;});h+='</div>';}
+    if(j.data&&Object.keys(j.data).length){
+      Object.entries(j.data).forEach(([name,info])=>{
+        h+=`<div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:10px 14px;font-size:12px"><span style="font-weight:600;color:var(--pos)">✓ ${name}</span><span style="float:right;color:var(--text)">VL: ${info.nav} EUR</span></div>`;
+      });
+    }else{
+      h+=`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--neg)">✗ Aucun fonds trouve — verifiez le code QS et le script GAS.</div>`;
+    }
+    h+='</div>';
+    res.innerHTML=h;
+  }catch(e){res.innerHTML=`<div style="color:var(--neg);padding:10px;background:var(--bg3);border-radius:8px;font-size:12px">Erreur: ${e.message||e}</div>`;}
+  btn.disabled=false;btn.textContent='Tester la mise a jour NAV';
 }
 
 // Yahoo + EUR/USD: via Apps Script proxy
