@@ -559,10 +559,11 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div><label>Frais (EUR)</label><input id="pea-fr" type="number" step="0.01" value="0"></div>
       <div><button class="btnp" onclick="addPEA()">Valider</button></div>
     </div>
-    <div class="sl" style="margin-top:1.5rem">Especes PEA</div>
-    <div class="info">Corriger directement le solde des especes disponibles sur ton PEA.</div>
+    <div class="sl" style="margin-top:1.5rem">Corriger les especes PEA</div>
+    <div class="info">Permet de corriger le solde especes et/ou le total investi sans passer par un achat/vente.</div>
     <div class="frow">
-      <div><label>Solde especes (EUR)</label><input id="pea-esp-val" type="number" step="0.01" placeholder="9288.49"></div>
+      <div><label>Solde especes actuel (EUR)</label><input id="pea-esp-val" type="number" step="0.01" placeholder="9288.49"></div>
+      <div><label>Total investi PEA (EUR)</label><input id="pea-esp-inv" type="number" step="0.01" placeholder="9295.97"></div>
       <div><button class="btnp" onclick="setEspPEA()">Mettre a jour</button></div>
     </div>
     <div class="sl">Positions PEA</div>
@@ -1488,11 +1489,15 @@ function onPEAOpChange(){
 }
 function setEspPEA(){
   const v=parseFloat(document.getElementById('pea-esp-val').value);
-  if(isNaN(v)||v<0){showM('Montant invalide','i');return;}
+  const totalInv=parseFloat(document.getElementById('pea-esp-inv').value);
+  if(isNaN(v)||v<0){showM('Solde especes invalide','i');return;}
   const espIdx=PEAD.findIndex(p=>p.name.toLowerCase().includes('espece'));
-  if(espIdx>=0){PEAD[espIdx].val=v;PEAD[espIdx].inv=v;}
-  else{PEAD.push({name:'Especes PEA',t:null,parts:null,val:v,inv:v});}
-  ss('mick_pead',PEAD);showM('Especes PEA mis a jour : '+fe(v),'s');rMgr();rPEA();rOv();
+  // Calcule l'inv des especes = total investi PEA - somme des inv des ETFs
+  const etfInv=PEAD.filter((_,i)=>i!==espIdx).reduce((s,p)=>s+(p.inv||0),0);
+  const espInv=!isNaN(totalInv)&&totalInv>0?totalInv-etfInv:(espIdx>=0?PEAD[espIdx].inv:v);
+  if(espIdx>=0){PEAD[espIdx].val=v;PEAD[espIdx].inv=espInv;}
+  else{PEAD.push({name:'Especes PEA',t:null,parts:null,val:v,inv:espInv});}
+  ss('mick_pead',PEAD);showM('Especes: '+fe(v)+' | Investi total PEA: '+fe(etfInv+espInv),'s');rMgr();rPEA();rOv();
 }
 function buildPEANmSel(){
   const sel=document.getElementById('pea-nm-sel');
@@ -1516,7 +1521,10 @@ function rMgrPEA(){
   document.getElementById('tb-peam').innerHTML=h||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:1.5rem">Aucune position</td></tr>';
   buildPEANmSel();
   const espEl=document.getElementById('pea-esp-val');
-  if(espEl){const esp=PEAD.find(p=>p.name.toLowerCase().includes('espece'));if(esp)espEl.value=esp.val;}
+  const invEl=document.getElementById('pea-esp-inv');
+  const esp=PEAD.find(p=>p.name.toLowerCase().includes('espece'));
+  if(espEl&&esp)espEl.value=esp.val;
+  if(invEl){const totalInv=PEAD.reduce((s,p)=>s+(p.inv||0),0);invEl.value=totalInv.toFixed(2);}
 }
 function rMgrPEE(){
   const d=ls('mick_pee',PEE);
