@@ -377,10 +377,10 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="recap-main" id="recap-pee"></div>
     <div class="recap-chart"><canvas id="c-pee-d"></canvas><div class="leg" id="lg-pee-d"></div></div>
   </div>
+  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution PEE</div><div style="height:200px;position:relative"><canvas id="c-evo-pee"></canvas></div></div>
   <div class="info">Les fonds PEE ne sont pas cotes en bourse. Valeurs mises a jour via l'onglet <strong>Gerer</strong>.</div>
   <div class="tbl-card"><table><thead><tr><th>Fonds</th><th>Valeur</th><th>Investi</th><th>+/- value</th><th>Perf.</th></tr></thead><tbody id="tb-pee"></tbody>
   <tfoot><tr><td>Total PEE</td><td id="pee-tv"></td><td id="pee-ti"></td><td id="pee-pn"></td><td id="pee-pc"></td></tr></tfoot></table></div>
-  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution PEE</div><div style="height:200px;position:relative"><canvas id="c-evo-pee"></canvas></div></div>
 </div>
 
 <!-- ==================== TRADE REPUBLIC ==================== -->
@@ -389,6 +389,7 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="recap-main" id="recap-tr"></div>
     <div class="recap-chart"><canvas id="c-tr-d"></canvas><div class="leg" id="lg-tr-d"></div></div>
   </div>
+  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Trade Republic</div><div style="height:200px;position:relative"><canvas id="c-evo-tr"></canvas></div></div>
   <div class="ptbs" id="tr-pt">
     <button class="ptb active" onclick="showTr('all')">Tout</button>
     <button class="ptb" onclick="showTr('act')">Actions</button>
@@ -398,7 +399,6 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <button class="ptb" onclick="showTr('rev')">Revenus</button>
   </div>
   <div id="tr-bd"></div>
-  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Trade Republic</div><div style="height:200px;position:relative"><canvas id="c-evo-tr"></canvas></div></div>
   <div id="tr-rev" style="display:none">
     <div class="sl" style="margin-top:.5rem">Revenus & Bonus</div>
     <div class="mets" id="met-tr-bonus"></div>
@@ -415,10 +415,10 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="recap-main" id="recap-pea"></div>
     <div class="recap-chart"><canvas id="c-pea-d"></canvas><div class="leg" id="lg-pea-d"></div></div>
   </div>
+  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution PEA</div><div style="height:200px;position:relative"><canvas id="c-evo-pea"></canvas></div></div>
   <div class="tbl-card"><table><thead><tr><th>ETF / Position</th><th>Parts</th><th>Prix unit.</th><th>Valeur</th><th>Investi</th><th>+/- value</th><th>Perf.</th></tr></thead>
   <tbody id="tb-pea"></tbody>
   <tfoot><tr><td>Total PEA</td><td></td><td></td><td id="pea-tv"></td><td id="pea-ti"></td><td id="pea-pn"></td><td id="pea-pc"></td></tr></tfoot></table></div>
-  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution PEA</div><div style="height:200px;position:relative"><canvas id="c-evo-pea"></canvas></div></div>
 </div>
 
 <!-- ==================== CRYPTO ==================== -->
@@ -427,6 +427,7 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="recap-main" id="recap-cry"></div>
     <div class="recap-chart"><canvas id="c-cry-d"></canvas><div class="leg" id="lg-cry-d"></div></div>
   </div>
+  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Crypto</div><div style="height:200px;position:relative"><canvas id="c-evo-cry"></canvas></div></div>
   <div class="ptbs" id="cry-pt">
     <button class="ptb active" onclick="showCry('all')">Tous</button>
     <button class="ptb" onclick="showCry('binance')">Binance</button>
@@ -444,7 +445,6 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
   <div class="tbl-card"><table><thead><tr><th>Crypto</th><th>Qte</th><th>Prix actuel</th><th>Achat moy.</th><th>Valeur</th><th>Investi</th><th>+/- value</th><th>Perf.</th><th>Plat.</th></tr></thead>
   <tbody id="tb-cs"></tbody>
   <tfoot><tr><td colspan="4">Total consolide</td><td id="cs-tv"></td><td id="cs-ti"></td><td id="cs-pn"></td><td id="cs-pc"></td><td></td></tr></tfoot></table></div>
-  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Crypto</div><div style="height:200px;position:relative"><canvas id="c-evo-cry"></canvas></div></div>
   <div class="sl" id="dl-lbl">Detail par coin</div>
   <div class="tbl-card"><table><thead><tr><th>Crypto</th><th>Plateforme</th><th>Qte</th><th>Prix</th><th>Achat moy.</th><th>Valeur</th><th>Investi</th><th>+/- value</th><th>Perf.</th></tr></thead>
   <tbody id="tb-dt"></tbody>
@@ -454,7 +454,6 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
 <!-- ==================== LIVRET A ==================== -->
 <div class="pg" id="pg-la">
   <div id="la-body"></div>
-  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Livret A</div><div style="height:200px;position:relative"><canvas id="c-evo-la"></canvas></div></div>
 </div>
 
 <!-- ==================== HISTORIQUE ==================== -->
@@ -1218,6 +1217,7 @@ function rLA(){
         </div>
       </div>
     </div>
+    <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Livret A</div><div style="height:200px;position:relative"><canvas id="c-evo-la"></canvas></div></div>
     <div class="info">Le Livret A est garanti par l'Etat. Les interets sont calcules par quinzaine et verses au 31 decembre. Taux en vigueur : ${taux} %.</div>`;
   buildSectionEvoChart('la','c-evo-la');
 }
@@ -1727,6 +1727,11 @@ function updateToday(gtv,trv,cryv,peav){
   if(!prev){sessionStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));bar.style.display='none';return;}
   try{
     const snap=JSON.parse(prev);
+    /* Si le snapshot est trop ancien (champs manquants), on le réinitialise */
+    if(snap.pea==null||snap.tr==null||snap.cry==null){
+      sessionStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));
+      bar.style.display='none';return;
+    }
     const diff=gtv-snap.v;const pct=snap.v>0?(diff/snap.v)*100:0;
     const trDiff=(snap.tr!=null)?trv-snap.tr:null;
     const cryDiff=(snap.cry!=null)?cryv-snap.cry:null;
