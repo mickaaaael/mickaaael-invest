@@ -524,7 +524,11 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div class="frow">
         <div><label>Operation</label><select id="tr-op" onchange="tglTrOp()"><option value="buy">Achat</option><option value="sell">Vente</option></select></div>
         <div><label>Type</label><select id="tr-tp" onchange="tglObl()"><option value="act">Action</option><option value="etf">ETF</option><option value="obl">Obligation</option><option value="pe">Private Equity</option></select></div>
-        <div><label>Nom</label><input id="tr-nm" type="text" placeholder="Amazon, Physical Gold..."></div>
+        <div>
+          <label>Nom</label>
+          <select id="tr-nm-sel" onchange="onTRNmChange()"><option value="">-- Choisir --</option></select>
+          <input id="tr-nm-new" type="text" placeholder="Nom de la nouvelle position" style="display:none;margin-top:6px;padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;width:100%">
+        </div>
         <div><label>Ticker / ISIN</label><input id="tr-tk" type="text" placeholder="AMZN ou IE00B..."></div>
         <div><label>Nb parts</label><input id="tr-qt" type="number" step="any"></div>
         <div id="tr-avw"><label>Prix unitaire (EUR)</label><input id="tr-av" type="number" step="any"></div>
@@ -1384,7 +1388,7 @@ function rHist(){
 /* ===== GERER ===== */
 function showMgr(s){cMgr=s;document.querySelectorAll('#mgr-pt .ptb').forEach((el,i)=>el.classList.toggle('active',['mensuel','crypto','tr','pea','pee','la','alerts'][i]===s));['mensuel','crypto','tr','pea','pee','la','alerts'].forEach(id=>{document.getElementById('mgr-'+id).style.display=id===s?'block':'none';});rMgr();}
 function tglTr(){const isT=document.getElementById('op-t').value==='transfer';document.getElementById('op-tow').style.display=isT?'':'none';document.getElementById('op-pw').style.display=isT?'none':'';}
-function tglObl(){document.getElementById('tr-cpw').style.display=document.getElementById('tr-tp').value==='obl'?'':'none';}
+function tglObl(){document.getElementById('tr-cpw').style.display=document.getElementById('tr-tp').value==='obl'?'':'none';buildTRNmSel();}
 function rMgr(){if(cMgr==='mensuel')rMgrMensuel();else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='la')rMgrLA();else if(cMgr==='alerts')rMgrAlerts();else rMgrPEE();}
 function rMgrMensuel(){
   let h='',n=0;
@@ -1477,8 +1481,26 @@ function showMgrTrSub(s){
   document.querySelectorAll('#mgr-tr-pt .ptb').forEach(el=>el.classList.toggle('active',el.textContent===(s==='positions'?'Positions':'Revenus')));
   if(s==='revenus') rMgrTRB();
 }
+function buildTRNmSel(){
+  const sel=document.getElementById('tr-nm-sel');
+  if(!sel)return;
+  const type=document.getElementById('tr-tp')?.value||'act';
+  const src={act:TRA,etf:TRE,obl:TRO,pe:TRP}[type]||[];
+  let opts='<option value="">-- Choisir --</option>';
+  src.forEach(p=>{opts+=`<option value="${p.name}" data-t="${p.t||p.coupon||''}">${p.name}</option>`;});
+  opts+='<option value="__new__">+ Nouveau...</option>';
+  sel.innerHTML=opts;
+}
+function onTRNmChange(){
+  const sel=document.getElementById('tr-nm-sel');
+  const newInp=document.getElementById('tr-nm-new');
+  const tkInp=document.getElementById('tr-tk');
+  if(sel.value==='__new__'){newInp.style.display='';newInp.value='';tkInp.value='';newInp.focus();}
+  else{newInp.style.display='none';tkInp.value=sel.options[sel.selectedIndex].getAttribute('data-t')||'';}
+}
 function rMgrTR(){
   rMgrTRB();
+  buildTRNmSel();
   let h='';
   const row=(arr,type,label,color)=>{arr.forEach((a,i)=>{const inv=a.qty&&a.avgBuy?a.qty*a.avgBuy:a.inv;h+=`<tr><td><span class="bdg" style="background:${color};color:var(--text)">${label}</span></td><td><span class="nm">${a.name}</span></td><td>${a.t||'—'}</td><td style="text-align:right">${a.qty?fq(a.qty):'—'}</td><td style="text-align:right">${a.avgBuy?fpx(a.avgBuy):(a.coupon||'—')}</td><td style="text-align:right">${fe(inv)}</td><td><button class="btnd" onclick="delTR('${type}',${i})">Suppr.</button></td></tr>`;});};
   row(TRA,'act','Action','rgba(167,139,250,.15)');row(TRE,'etf','ETF','rgba(91,108,240,.15)');row(TRO,'obl','Oblig.','rgba(240,194,127,.15)');row(TRP,'pe','PE','rgba(52,211,153,.12)');
@@ -1575,7 +1597,10 @@ function sOp(){const t=document.getElementById('op-t').value,s=document.getEleme
 function dOp(i){ops.splice(i,1);ss('mo9',ops);rMgr();}
 function tglTrOp(){const isSell=document.getElementById('tr-op').value==='sell';document.getElementById('tr-avw').querySelector('label').textContent=isSell?'Prix de vente (EUR)':'Prix unitaire (EUR)';}
 function addTR(){
-  const op=document.getElementById('tr-op').value,type=document.getElementById('tr-tp').value,name=document.getElementById('tr-nm').value.trim(),ticker=document.getElementById('tr-tk').value.trim()||null,qty=parseFloat(document.getElementById('tr-qt').value)||0,price=parseFloat(document.getElementById('tr-av').value)||0,frais=parseFloat(document.getElementById('tr-fr').value)||0;
+  const op=document.getElementById('tr-op').value,type=document.getElementById('tr-tp').value;
+  const _sel=document.getElementById('tr-nm-sel'),_new=document.getElementById('tr-nm-new');
+  const name=(_sel&&_sel.value==='__new__'?_new.value:_sel?_sel.options[_sel.selectedIndex]?.value:'').trim();
+  const ticker=document.getElementById('tr-tk').value.trim()||null,qty=parseFloat(document.getElementById('tr-qt').value)||0,price=parseFloat(document.getElementById('tr-av').value)||0,frais=parseFloat(document.getElementById('tr-fr').value)||0;
   if(!name){showM('Nom obligatoire','i');return;}
   const montant=qty*price;
   if(op==='buy'){
@@ -1610,7 +1635,9 @@ function addTR(){
     ss('mick_trb',TRB);
     showM('Vente '+name+' : '+fe(montant)+' (benefice: '+(benefice>=0?'+':'')+fe(benefice)+', frais: '+fe(frais)+')','s');
   }
-  ['tr-nm','tr-tk','tr-qt','tr-av','tr-cp'].forEach(id=>document.getElementById(id).value='');
+  ['tr-tk','tr-qt','tr-av','tr-cp'].forEach(id=>document.getElementById(id).value='');
+  const _rs=document.getElementById('tr-nm-sel');if(_rs)_rs.value='';
+  const _rn=document.getElementById('tr-nm-new');if(_rn){_rn.value='';_rn.style.display='none';}
   document.getElementById('tr-fr').value='0';rMgr();rTR();rOv();
 }
 function delTR(type,i){if(type==='act'){TRA.splice(i,1);ss('mick_tra',TRA);}else if(type==='etf'){TRE.splice(i,1);ss('mick_tre',TRE);}else if(type==='obl'){TRO.splice(i,1);ss('mick_tro',TRO);}else{TRP.splice(i,1);ss('mick_trp',TRP);}rMgr();rTR();rOv();}
