@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Patrimoine — Mick</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="theme-color" content="#0f111a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mick Finance">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -427,7 +434,19 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="recap-main" id="recap-cry"></div>
     <div class="recap-chart"><canvas id="c-cry-d"></canvas><div class="leg" id="lg-cry-d"></div></div>
   </div>
-  <div class="evo-wrap" style="margin-top:1.5rem"><div class="sl">Evolution Crypto</div><div style="height:200px;position:relative"><canvas id="c-evo-cry"></canvas></div></div>
+  <div class="evo-wrap" style="margin-top:1.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:.5rem">
+      <div class="sl" style="margin:0">Evolution Crypto</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="ptb active" id="cevo-all" onclick="showCryEvo('all')" style="font-size:10px;padding:4px 10px">Tout</button>
+        <button class="ptb" id="cevo-binance" onclick="showCryEvo('binance')" style="font-size:10px;padding:4px 10px;color:#f3ba2f">Binance</button>
+        <button class="ptb" id="cevo-kraken" onclick="showCryEvo('kraken')" style="font-size:10px;padding:4px 10px;color:#b088f9">Kraken</button>
+        <button class="ptb" id="cevo-coinbase" onclick="showCryEvo('coinbase')" style="font-size:10px;padding:4px 10px;color:#5b8def">Coinbase</button>
+        <button class="ptb" id="cevo-ledger" onclick="showCryEvo('ledger')" style="font-size:10px;padding:4px 10px;color:#34d399">Ledger</button>
+      </div>
+    </div>
+    <div style="height:200px;position:relative"><canvas id="c-evo-cry"></canvas></div>
+  </div>
   <div class="ptbs" id="cry-pt">
     <button class="ptb active" onclick="showCry('all')">Tous</button>
     <button class="ptb" onclick="showCry('binance')">Binance</button>
@@ -674,7 +693,7 @@ function trbGet(){
 }
 const FB={c:{BTC:58400,ETH:1730,SOL:68.6,USDC:0.917,DOGE:0.0799,AVAX:15.8,AAVE:79.5,PENDLE:2.35,SUI:1.85,DOT:3.12,LINK:7.36,XRP:1.21,COOKIE:0.038,AIXBT:0.058,FWOG:0.007,ELIZAOS:0.013},s:{'PLX.PA':9.8,'EDEN.PA':42.5,'AMZN':167,'V':255,'WPEA.PA':11.73,'CW8.PA':50,'PUST.PA':90.34,'IGLN.L':93.0,'IE000UL6CLP7.SG':38.71,'IE00BJ5JPG56.SG':4.90,'IE00BHZRQZ17.SG':34.74,'LYMD.DE':19.78,'LCUJ.DE':20.55}};
 let CP={},SP={},SP_RAW={},EU=1/1.154,port,ops,TRA=TRA_D,TRE=TRE_D,TRO=TRO_D,TRP=TRP_D,PEAD=PEAD_D,cTr='all',cCry='all',cMgr='mensuel',CH={},ok=false;
-let crySort='val',prevSnap={},hideMode=false,evoFilter='all',PEENAV={};
+let crySort='val',prevSnap={},hideMode=false,evoFilter='all',PEENAV={},cCryEvo='all',CRYPT_PLAT={};
 let CP_USD={},CP_CHG={};
 const BANNER_YH=['^GSPC','^FCHI','CW8.PA'];
 
@@ -1046,14 +1065,33 @@ function buildEvoChart(){
 }
 
 /* ===== SECTION EVO CHART ===== */
+function showCryEvo(p){
+  cCryEvo=p;
+  ['all','binance','kraken','coinbase','ledger'].forEach(id=>{const el=document.getElementById('cevo-'+id);if(el)el.classList.toggle('active',id===p);});
+  buildSectionEvoChart('crypto','c-evo-cry');
+}
 function buildSectionEvoChart(filter,canvasId){
   const canvas=document.getElementById(canvasId);
   if(!canvas)return;
   const histMap={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
   let valData,invData;
   if(filter==='la'){const laVal=ls('mick_la',LA_D).val;valData=HIST.map(()=>laVal);invData=HIST.map(()=>laVal);}
+  else if(filter==='crypto'){
+    const plat=cCryEvo||'all';
+    const totV=CRYPT_PLAT.all?CRYPT_PLAT.all.v:0;
+    const totI=CRYPT_PLAT.all?CRYPT_PLAT.all.i:0;
+    if(plat==='all'||!totV){
+      valData=HIST.map(m=>m.cry?m.cry.v:0);invData=HIST.map(m=>m.cry?m.cry.i:0);
+    }else{
+      const ratV=totV>0?(CRYPT_PLAT[plat]?CRYPT_PLAT[plat].v/totV:0):0;
+      const ratI=totI>0?(CRYPT_PLAT[plat]?CRYPT_PLAT[plat].i/totI:0):0;
+      valData=HIST.map(m=>m.cry?+((m.cry.v*ratV)).toFixed(2):0);
+      invData=HIST.map(m=>m.cry?+((m.cry.i*ratI)).toFixed(2):0);
+    }
+  }
   else{const hk=histMap[filter];valData=HIST.map(m=>m[hk]?m[hk].v:0);invData=HIST.map(m=>m[hk]?m[hk].i:0);}
-  const color=({pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'})[filter]||'#5b6cf0';
+  const platColors={binance:'#f3ba2f',kraken:'#b088f9',coinbase:'#5b8def',ledger:'#34d399'};
+  const color=filter==='crypto'&&cCryEvo!=='all'?platColors[cCryEvo]:({pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'})[filter]||'#5b6cf0';
   const ck='sec_'+filter;
   if(CH[ck])CH[ck].destroy();
   CH[ck]=new Chart(canvas,{type:'line',data:{labels:HIST.map(m=>m.m),datasets:[{data:valData,borderColor:color,backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,color+'26');g.addColorStop(1,color+'00');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:invData,borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
@@ -1183,6 +1221,10 @@ function rCry(){
   sv('cs-tv',fe(ctv));sv('cs-ti',fe(cti));svc('cs-pn',(ctp>=0?'+':'')+fe(ctp),ctp);svc('cs-pc',fp(ctpct),ctp);
   /* Recap */
   buildRecap('recap-cry','Crypto',ctv,cti,'cry');
+  /* Per-platform totals pour la courbe evo */
+  const allC=aC();
+  CRYPT_PLAT={all:{v:allC.reduce((s,c)=>s+gC(c.symbol)*c.qty,0),i:allC.reduce((s,c)=>s+(c.avgBuy||0)*c.qty,0)}};
+  ['binance','kraken','coinbase','ledger'].forEach(pl=>{const coins=allC.filter(c=>c.pl===pl);CRYPT_PLAT[pl]={v:coins.reduce((s,c)=>s+gC(c.symbol)*c.qty,0),i:coins.reduce((s,c)=>s+(c.avgBuy||0)*c.qty,0)};});
   /* Mini donut top 5 + others */
   const cryItems=[];const cols=['#f0c27f','#5b6cf0','#a78bfa','#34d399','#f87171','#555770'];
   rows.slice(0,5).forEach((r,i)=>{const val=gC(r.s)*r.qty;cryItems.push({l:r.s,v:val,c:cols[i]});});
