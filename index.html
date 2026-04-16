@@ -548,8 +548,12 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="sl" style="margin-top:.5rem">Achat / Vente PEA</div>
     <div class="frow">
       <div><label>Operation</label><select id="pea-op"><option value="buy">Achat</option><option value="sell">Vente</option></select></div>
-      <div><label>Nom</label><input id="pea-nm" type="text" placeholder="WPEA, CW8..."></div>
-      <div><label>Ticker / ISIN</label><input id="pea-tk" type="text" placeholder="WPEA.PA"></div>
+      <div>
+        <label>ETF / Position</label>
+        <select id="pea-nm-sel" onchange="onPEANmChange()"><option value="">-- Choisir --</option></select>
+        <input id="pea-nm-new" type="text" placeholder="Nom du nouvel ETF" style="display:none;margin-top:6px;padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;width:100%">
+      </div>
+      <div><label>Ticker Yahoo Finance</label><input id="pea-tk" type="text" placeholder="ETZ.PA"></div>
       <div><label>Nb parts</label><input id="pea-qt" type="number" step="any"></div>
       <div><label>Prix unitaire (EUR)</label><input id="pea-av" type="number" step="any"></div>
       <div><label>Frais (EUR)</label><input id="pea-fr" type="number" step="0.01" value="0"></div>
@@ -1466,10 +1470,27 @@ function rMgrTR(){
   row(TRA,'act','Action','rgba(167,139,250,.15)');row(TRE,'etf','ETF','rgba(91,108,240,.15)');row(TRO,'obl','Oblig.','rgba(240,194,127,.15)');row(TRP,'pe','PE','rgba(52,211,153,.12)');
   document.getElementById('tb-trm').innerHTML=h||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:1.5rem">Aucune position</td></tr>';
 }
+function buildPEANmSel(){
+  const sel=document.getElementById('pea-nm-sel');
+  if(!sel)return;
+  const known=PEAD.filter(p=>p.name&&!p.name.toLowerCase().includes('espece'));
+  let opts='<option value="">-- Choisir --</option>';
+  known.forEach(p=>{opts+=`<option value="${p.name}" data-t="${p.t||''}">${p.name}</option>`;});
+  opts+='<option value="__new__">+ Nouvel ETF...</option>';
+  sel.innerHTML=opts;
+}
+function onPEANmChange(){
+  const sel=document.getElementById('pea-nm-sel');
+  const newInp=document.getElementById('pea-nm-new');
+  const tkInp=document.getElementById('pea-tk');
+  if(sel.value==='__new__'){newInp.style.display='';newInp.value='';tkInp.value='';newInp.focus();}
+  else{newInp.style.display='none';tkInp.value=sel.options[sel.selectedIndex].getAttribute('data-t')||'';}
+}
 function rMgrPEA(){
   let h='';
   PEAD.forEach((p,i)=>{const inv=p.parts&&p.avgBuy?p.parts*p.avgBuy:(p.inv||0);h+=`<tr><td><span class="nm">${p.name}</span></td><td>${p.t||'—'}</td><td style="text-align:right">${p.parts||'—'}</td><td style="text-align:right">${p.avgBuy?fpx(p.avgBuy):'—'}</td><td style="text-align:right">${fe(inv)}</td><td><button class="btnd" onclick="delPEA(${i})">Suppr.</button></td></tr>`;});
   document.getElementById('tb-peam').innerHTML=h||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:1.5rem">Aucune position</td></tr>';
+  buildPEANmSel();
 }
 function rMgrPEE(){
   const d=ls('mick_pee',PEE);
@@ -1588,8 +1609,11 @@ function addTR(){
 }
 function delTR(type,i){if(type==='act'){TRA.splice(i,1);ss('mick_tra',TRA);}else if(type==='etf'){TRE.splice(i,1);ss('mick_tre',TRE);}else if(type==='obl'){TRO.splice(i,1);ss('mick_tro',TRO);}else{TRP.splice(i,1);ss('mick_trp',TRP);}rMgr();rTR();rOv();}
 function addPEA(){
-  const op=document.getElementById('pea-op').value,name=document.getElementById('pea-nm').value.trim(),ticker=document.getElementById('pea-tk').value.trim()||null,parts=parseFloat(document.getElementById('pea-qt').value)||0,price=parseFloat(document.getElementById('pea-av').value)||0,frais=parseFloat(document.getElementById('pea-fr').value)||0;
-  if(!name){showM('Nom obligatoire','i');return;}
+  const op=document.getElementById('pea-op').value;
+  const sel=document.getElementById('pea-nm-sel');
+  const name=sel.value==='__new__'?document.getElementById('pea-nm-new').value.trim():sel.value;
+  const ticker=document.getElementById('pea-tk').value.trim()||null,parts=parseFloat(document.getElementById('pea-qt').value)||0,price=parseFloat(document.getElementById('pea-av').value)||0,frais=parseFloat(document.getElementById('pea-fr').value)||0;
+  if(!name){showM('Choisissez ou saisissez un ETF','i');return;}
   const montant=parts*price;
   if(op==='buy'){
     /* ACHAT PEA */
@@ -1619,7 +1643,8 @@ function addPEA(){
     ss('mick_pead',PEAD);
     showM('Vente '+name+' : '+fe(montant)+' net '+fe(produitNet)+' (frais: '+fe(frais)+') -> Especes PEA','s');
   }
-  ['pea-nm','pea-tk','pea-qt','pea-av'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pea-nm-sel').value='';document.getElementById('pea-nm-new').style.display='none';
+  ['pea-tk','pea-qt','pea-av'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pea-fr').value='0';rMgr();rPEA();rOv();
 }
 function delPEA(i){PEAD.splice(i,1);ss('mick_pead',PEAD);rMgr();rPEA();rOv();}
