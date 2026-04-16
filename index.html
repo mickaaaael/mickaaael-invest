@@ -644,7 +644,7 @@ const TRA_D=[{name:'Pluxee',t:'PLX.PA',qty:3,avgBuy:20.24,val:32.88,inv:0},{name
 const TRE_D=[{name:'Physical Gold USD',t:'IGLN.L',qty:14.423171,avgBuy:78.19,val:1133.23,inv:1127.74},{name:'Silver Miners USD',t:'IE000UL6CLP7.SG',qty:15.800275,avgBuy:37.97,val:611.63,inv:599.93},{name:'MSCI China USD',t:'IE00BJ5JPG56.SG',qty:5.438723,avgBuy:5.52,val:26.66,inv:30.02},{name:'MSCI India Swap USD (acc)',t:'LYM7.DE',qty:4.009641,avgBuy:19.96,val:64.47,inv:80.03},{name:'FTSE India USD',t:'IE00BHZRQZ17.SG',qty:0.698242,avgBuy:42.97,val:24.26,inv:30.0},{name:'MSCI Japan JPY',t:'LCUJ.DE',qty:1.076484,avgBuy:18.58,val:22.12,inv:20.0}];
 const TRO_D=[{name:'Air Baltic',coupon:'8%',val:112.01,inv:114.55},{name:'Roumanie',coupon:'4.5%',val:508.08,inv:484.50}];
 const TRP_D=[{name:'Apollo Global',val:152.11,inv:150.0},{name:'EQT AB',val:151.89,inv:150.0}];
-const PEAD_D=[{name:'BNP Stoxx Europe',t:null,parts:null,val:56.95,inv:53.60},{name:'BNP S&P500 EUR (ESE)',t:null,parts:null,val:28.21,inv:28.27},{name:'Amundi Japon (TOPIX)',t:null,parts:null,val:33.50,inv:31.18},{name:'Amundi Asia ESG',t:null,parts:null,val:30.64,inv:28.67},{name:'Amundi CAC40',t:null,parts:null,val:77.20,inv:0},{name:'iShares Commodity Swap',t:null,parts:null,val:169.95,inv:0},{name:'Especes PEA',t:null,parts:null,val:9288.49,inv:9154.25}];
+const PEAD_D=[{name:'BNP Stoxx Europe',t:'ETZ.PA',parts:null,val:56.95,inv:53.60},{name:'BNP S&P500 EUR (ESE)',t:'ESE.PA',parts:null,val:28.21,inv:28.27},{name:'Amundi Japon (TOPIX)',t:'PTPXE.PA',parts:null,val:33.50,inv:31.18},{name:'Amundi Asia ESG',t:'PAASI.PA',parts:null,val:30.64,inv:28.67},{name:'Amundi CAC40',t:'CAC.PA',parts:null,val:77.20,inv:0},{name:'iShares Commodity Swap',t:'CMSE.PA',parts:null,val:169.95,inv:0},{name:'Especes PEA',t:null,parts:null,val:9288.49,inv:9154.25}];
 const DC={binance:[{symbol:'BTC',qty:0.11992147,avgBuy:90247.80},{symbol:'ETH',qty:0.62391941,avgBuy:2671.21},{symbol:'SOL',qty:2.24248274,avgBuy:95.49},{symbol:'USDC',qty:125.93,avgBuy:0.8653},{symbol:'DOGE',qty:1299.51,avgBuy:0.24265},{symbol:'AVAX',qty:7.5346,avgBuy:25.56},{symbol:'AAVE',qty:0.35867,avgBuy:240.57},{symbol:'PENDLE',qty:27.3702,avgBuy:3.764},{symbol:'SUI',qty:31.2714,avgBuy:3.2362},{symbol:'DOT',qty:18.6123,avgBuy:3.7121},{symbol:'COOKIE',qty:1429.36,avgBuy:0.10913},{symbol:'AIXBT',qty:767.60,avgBuy:0.10245},{symbol:'FWOG',qty:2060.60,avgBuy:0.033927},{symbol:'ELIZAOS',qty:10541.82,avgBuy:0.078157}],kraken:[{symbol:'BTC',qty:0.04076563,avgBuy:71070.29},{symbol:'ETH',qty:1.08703,avgBuy:2324.27},{symbol:'LINK',qty:59.80947,avgBuy:11.20},{symbol:'SOL',qty:5.60312,avgBuy:104.37},{symbol:'XRP',qty:151.62163,avgBuy:1.64},{symbol:'COOKIE',qty:1045.444,avgBuy:0.09628}],coinbase:[{symbol:'BTC',qty:0.00010154,avgBuy:0,note:'cadeau'},{symbol:'ETH',qty:0.03999176,avgBuy:3640}],ledger:[]};
 const BNP={BTC:'BTCUSDT',ETH:'ETHUSDT',SOL:'SOLUSDT',DOGE:'DOGEUSDT',AVAX:'AVAXUSDT',AAVE:'AAVEUSDT',PENDLE:'PENDLEUSDT',SUI:'SUIUSDT',DOT:'DOTUSDT',LINK:'LINKUSDT',XRP:'XRPUSDT',COOKIE:'COOKIEUSDT',AIXBT:'AIXBTUSDT',FWOG:'FWOGUSDT',ELIZAOS:'ELIZAUSDT'};
 function getYHT(){const s=new Set();TRA.forEach(a=>{if(a.t)s.add(a.t)});TRE.forEach(e=>{if(e.t)s.add(e.t)});PEAD.forEach(p=>{if(p.t)s.add(p.t)});BANNER_YH.forEach(t=>s.add(t));return[...s];}
@@ -834,6 +834,8 @@ async function load(){
   document.getElementById('pills').innerHTML='<button class="btn-refresh" disabled><span class="sp"></span>Chargement...</button>';
   port=ls('mp9',JSON.parse(JSON.stringify(DC)));ops=ls('mo9',[]);loadTRB();
   TRA=ls('mick_tra',JSON.parse(JSON.stringify(TRA_D)));TRE=ls('mick_tre',JSON.parse(JSON.stringify(TRE_D)));TRO=ls('mick_tro',JSON.parse(JSON.stringify(TRO_D)));TRP=ls('mick_trp',JSON.parse(JSON.stringify(TRP_D)));PEAD=ls('mick_pead',JSON.parse(JSON.stringify(PEAD_D)));
+  // Migration: ajoute les tickers manquants depuis PEAD_D par correspondance de nom
+  let peadPatched=false;PEAD=PEAD.map(p=>{if(!p.t){const def=PEAD_D.find(d=>d.name===p.name);if(def&&def.t){peadPatched=true;return{...p,t:def.t};}}return p;});if(peadPatched)ss('mick_pead',PEAD);
   const[bn,yh,pf]=await Promise.all([fetchBN(),fetchYH(),fetchPEEFunds()]);
   ok=true;
   const pills=[];
@@ -888,7 +890,7 @@ function rAll(){rOv();rPEE();rTR();rPEA();rCry();rLA();rHist();rMgr();}
 
 /* ===== SECTION CALC ===== */
 function cSec(name){
-  if(name==='pee'){const d=ls('mick_pee',PEE);return{tv:d.reduce((s,f)=>{const nav=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;return s+(nav?f.parts*nav:f.val);},0),ti:d.reduce((s,f)=>s+f.inv,0)};}
+  if(name==='pee'){const d=ls('mick_pee',PEE);return{tv:d.reduce((s,f)=>{const nav=(f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null)||f.nav||null;return s+(nav&&f.parts?f.parts*nav:f.val);},0),ti:d.reduce((s,f)=>s+f.inv,0)};}
   if(name==='tr'){let tv=0,ti=0;TRA.forEach(a=>{const px=gS(a.t);tv+=(px&&a.qty>0?px*a.qty:a.val);ti+=a.inv;});TRE.forEach(e=>{const px=e.t?gS(e.t):null;tv+=(px&&e.qty?px*e.qty:e.val);ti+=(e.inv);});TRO.forEach(o=>{tv+=o.val;ti+=o.inv;});TRP.forEach(p=>{tv+=p.val;ti+=p.inv;});const B=trbGet(),li=B.months.length-1;tv+=B.divT[li]+B.sbT[li]+B.ventT[li]-B.fraisT[li];return{tv,ti};}
   if(name==='pea'){let tv=0,ti=0;PEAD.forEach(p=>{const px=p.t?gS(p.t):null;tv+=(px&&p.parts?px*p.parts:p.val);ti+=p.inv;});return{tv,ti};}
   if(name==='crypto'){let tv=0,ti=0;aC().forEach(c=>{tv+=gC(c.symbol)*c.qty;ti+=c.avgBuy?c.avgBuy*c.qty:0;});return{tv,ti};}
@@ -1471,26 +1473,35 @@ function rMgrPEA(){
 }
 function rMgrPEE(){
   const d=ls('mick_pee',PEE);
-  /* Formulaire mensuel : seulement les fonds actifs (val > 0) */
   let h='<div style="display:grid;gap:8px">';
   const IS='padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);text-align:right;font-family:inherit;outline:none;width:100%';
   d.forEach((f,i)=>{
     if(f.val>0||f.inv>0||(f.parts&&f.parts>0)){
-      const navData=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name]:null;
-      const computedVal=navData?+(f.parts*navData.nav).toFixed(2):null;
-      const navBadge=navData?`<div style="font-size:10px;color:var(--pos);margin-top:3px">\u25CF VL auto: ${fpx(navData.nav)} (${navData.ticker})</div>`:'';
-      h+=`<div style="display:grid;grid-template-columns:1fr 120px 150px;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px">
-        <div><span style="font-size:12px;font-weight:500">${f.name}</span>${navBadge}</div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nb parts</div>
-          <input id="pee-p-${i}" type="number" step="any" value="${f.parts||''}" placeholder="0" style="${IS}">
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Valeur${navData?' (auto)':' (EUR)'}</div>
-          ${navData
-            ?`<div style="padding:9px 12px;font-size:12px;border:1px solid rgba(52,211,153,.2);border-radius:10px;background:rgba(52,211,153,.05);color:var(--pos);text-align:right;font-weight:600">${fe(computedVal)}</div>`
-            :`<input id="pee-v-${i}" type="number" step="0.01" value="${f.val}" style="${IS}">`
-          }
+      const autoNav=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;
+      const storedNav=f.nav&&f.nav>0?f.nav:null;
+      const activeNav=autoNav||storedNav;
+      const computedVal=activeNav&&f.parts?+(f.parts*activeNav).toFixed(2):null;
+      const navBadge=autoNav
+        ?`<div style="font-size:10px;color:var(--pos);margin-top:3px">&#9679; VL auto: ${fpx(autoNav)}</div>`
+        :storedNav?`<div style="font-size:10px;color:var(--gold);margin-top:3px">&#9679; VL saisie: ${fpx(storedNav)} → ${computedVal?fe(computedVal):''}</div>`:'';
+      h+=`<div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:12px 16px">
+        <div style="font-size:12px;font-weight:500;margin-bottom:10px">${f.name}${navBadge}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Nb parts</div>
+            <input id="pee-p-${i}" type="number" step="any" value="${f.parts||''}" placeholder="0" style="${IS}">
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">VL (€/part)</div>
+            <input id="pee-n-${i}" type="number" step="0.0001" value="${storedNav||''}" placeholder="${autoNav?'auto':'ex: 329.45'}" style="${IS}${autoNav?';opacity:.5':''}">
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Valeur (EUR)</div>
+            ${activeNav&&f.parts
+              ?`<div style="padding:9px 12px;font-size:12px;border:1px solid rgba(52,211,153,.2);border-radius:10px;background:rgba(52,211,153,.05);color:var(--pos);text-align:right;font-weight:600">${fe(computedVal)}</div>`
+              :`<input id="pee-v-${i}" type="number" step="0.01" value="${f.val||''}" placeholder="0" style="${IS}">`
+            }
+          </div>
         </div>
       </div>`;
     }
@@ -1612,7 +1623,7 @@ function addPEA(){
   document.getElementById('pea-fr').value='0';rMgr();rPEA();rOv();
 }
 function delPEA(i){PEAD.splice(i,1);ss('mick_pead',PEAD);rMgr();rPEA();rOv();}
-function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const pe=document.getElementById('pee-p-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const navData=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name]:null;const newVal=navData?+(newParts*navData.nav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,val:newVal};});ss('mick_pee',d);showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();}
+function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const pe=document.getElementById('pee-p-'+i),pn=document.getElementById('pee-n-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const manualNav=pn&&pn.value!==''?parseFloat(pn.value):f.nav;const autoNav=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;const activeNav=autoNav||manualNav;const newVal=activeNav&&newParts&&newParts>0?+(newParts*activeNav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,nav:isNaN(manualNav)?f.nav:manualNav,val:newVal};});ss('mick_pee',d);showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();}
 function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv,parts:null,code:null});ss('mick_pee',d);showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
 function delPEE(i){const d=ls('mick_pee',PEE);d.splice(i,1);ss('mick_pee',d);rMgr();rPEE();rOv();}
 function showM(msg,t){const el=document.getElementById('msg');el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
