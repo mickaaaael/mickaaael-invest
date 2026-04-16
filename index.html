@@ -266,6 +266,20 @@ a,button,input,select{transition:all .15s ease}
 .login-box .login-btn{width:100%;margin-top:1rem;padding:12px;font-size:13px;font-weight:600;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.02em}
 .login-box .login-btn:hover{filter:brightness(1.1)}
 .login-box .login-err{color:var(--neg);font-size:11px;margin-top:.8rem;display:none}
+.bio-btn{width:60px;height:60px;margin:1.2rem auto 0;border:2px solid var(--brd2);border-radius:50%;background:var(--bg3);cursor:pointer;display:none;align-items:center;justify-content:center;transition:all .25s}
+.bio-btn:hover{border-color:var(--accent);background:rgba(91,108,240,.08)}
+.bio-btn svg{width:28px;height:28px;fill:var(--text2)}
+.bio-btn:hover svg{fill:var(--accent)}
+.bio-label{font-size:10px;color:var(--text3);margin-top:6px;display:none}
+.bio-prompt{margin-top:1.2rem;padding:14px;border:1px solid var(--brd2);border-radius:12px;background:var(--bg3);display:none}
+.bio-prompt p{font-size:12px;color:var(--text);margin-bottom:.8rem}
+.bio-prompt-btns{display:flex;gap:8px;justify-content:center}
+.bio-prompt-btns button{padding:8px 18px;font-size:11px;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
+.bio-prompt-yes{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.bio-prompt-no{background:var(--bg2);color:var(--text2);border:1px solid var(--brd2)!important}
+.bio-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--brd2);border-radius:16px;padding:18px 24px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:10000;display:none;text-align:center;max-width:340px;width:90%;animation:fadeIn .35s ease}
+.bio-toast p{font-size:13px;color:var(--text);margin-bottom:10px;font-weight:600}
+.bio-toast span{font-size:11px;color:var(--text3);display:block;margin-bottom:12px}
 
 /* === SPACING === */
 .g2{gap:16px}
@@ -319,6 +333,20 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <input type="password" id="login-pwd" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" onclick="doLogin()">Se connecter</button>
     <div class="login-err" id="login-err">Mot de passe incorrect</div>
+    <div class="bio-btn" id="bio-btn" onclick="bioLogin()">
+      <svg viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39s-4.66 1.97-4.66 4.39c0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5-.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-4.91-1.31-7.78-6.04-7.78-9.64 0-2.65 2.76-4.5 4.92-4.5.28 0 .5.22.5.5s-.22.5-.5.5c-1.51 0-3.92 1.33-3.92 3.5 0 3.19 2.63 7.49 6.99 8.65.27.07.43.35.36.62-.06.23-.27.39-.44.39zm3.23-2.07c-.1 0-.2-.03-.3-.1-.23-.17-.28-.47-.12-.7.64-.9.98-2.11.98-3.51 0-.28.22-.5.5-.5s.5.22.5.5c0 1.61-.39 2.99-1.16 4.08-.09.15-.25.23-.4.23z"/></svg>
+    </div>
+    <div class="bio-label" id="bio-label">Deverrouiller avec empreinte</div>
+  </div>
+</div>
+
+<!-- BIO TOAST (prompt apres login) -->
+<div class="bio-toast" id="bio-toast">
+  <p>Activer le deverrouillage biometrique ?</p>
+  <span>Utilisez votre empreinte ou visage pour un acces rapide</span>
+  <div class="bio-prompt-btns">
+    <button class="bio-prompt-yes" onclick="bioRegister()">Activer</button>
+    <button class="bio-prompt-no" onclick="bioPromptDismiss()">Plus tard</button>
   </div>
 </div>
 
@@ -736,6 +764,8 @@ function doLogin(){
       document.getElementById('main-app').style.display='';
       sessionStorage.setItem('mf_token',pwd);
       startLoad();
+      /* Proposer biometrie si pas encore activee */
+      setTimeout(()=>bioPromptShow(),1500);
     }else{
       document.getElementById('login-err').textContent='Connexion echouee - verifiez votre mot de passe';
       document.getElementById('login-err').style.display='block';
@@ -744,11 +774,101 @@ function doLogin(){
     }
   });
 }
+/* ===== BIOMETRIC AUTH ===== */
+function bioSupported(){return window.PublicKeyCredential && navigator.credentials && typeof navigator.credentials.create==='function';}
+function bioHasCred(){return !!localStorage.getItem('mf_bio_cred');}
+
+function bioInitLogin(){
+  /* Affiche le bouton empreinte si des credentials existent */
+  if(bioSupported()&&bioHasCred()){
+    document.getElementById('bio-btn').style.display='flex';
+    document.getElementById('bio-label').style.display='block';
+    /* Lancer auto le scan biometrique */
+    setTimeout(()=>bioLogin(),600);
+  }
+}
+
+async function bioRegister(){
+  try{
+    const userId=new Uint8Array(16);crypto.getRandomValues(userId);
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      rp:{name:'Mick Finance'},
+      user:{id:userId,name:'mick',displayName:'Mick'},
+      pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000
+    }});
+    /* Sauvegarder credential ID + token chiffre (base64) */
+    const credId=btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    localStorage.setItem('mf_bio_cred',credId);
+    localStorage.setItem('mf_bio_tk',btoa(GS_TOKEN));
+    document.getElementById('bio-toast').style.display='none';
+    showM('Biometrie activee ! Prochain login avec empreinte','s');
+  }catch(e){
+    console.log('Bio register error:',e);
+    document.getElementById('bio-toast').style.display='none';
+    if(e.name!=='NotAllowedError')showM('Erreur biometrie: '+e.message,'i');
+  }
+}
+
+async function bioLogin(){
+  if(!bioSupported()||!bioHasCred())return;
+  try{
+    const credId=localStorage.getItem('mf_bio_cred');
+    const rawId=Uint8Array.from(atob(credId),c=>c.charCodeAt(0));
+    await navigator.credentials.get({publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials:[{id:rawId,type:'public-key',transports:['internal']}],
+      userVerification:'required',
+      timeout:60000
+    }});
+    /* Biometrie OK — recuperer le token et login */
+    const tk=atob(localStorage.getItem('mf_bio_tk')||'');
+    if(!tk){showM('Token biometrique perdu, utilisez le mot de passe','i');return;}
+    GS_TOKEN=tk;
+    document.querySelector('.login-btn').textContent='Connexion...';
+    document.querySelector('.login-btn').disabled=true;
+    const ok=await gsLoadAll();
+    if(ok){
+      document.getElementById('login-overlay').style.display='none';
+      document.getElementById('main-app').style.display='';
+      sessionStorage.setItem('mf_token',tk);
+      startLoad();
+    }else{
+      /* Token invalide — supprimer bio et forcer mot de passe */
+      localStorage.removeItem('mf_bio_cred');
+      localStorage.removeItem('mf_bio_tk');
+      document.getElementById('bio-btn').style.display='none';
+      document.getElementById('bio-label').style.display='none';
+      document.getElementById('login-err').textContent='Session expiree, entrez votre mot de passe';
+      document.getElementById('login-err').style.display='block';
+      document.querySelector('.login-btn').textContent='Se connecter';
+      document.querySelector('.login-btn').disabled=false;
+    }
+  }catch(e){
+    console.log('Bio login error:',e);
+    /* L'utilisateur a annule ou erreur — ne rien faire, il peut taper son mdp */
+  }
+}
+
+function bioPromptDismiss(){document.getElementById('bio-toast').style.display='none';}
+
+function bioPromptShow(){
+  /* Propose d'activer la biometrie apres un login mot de passe reussi */
+  if(!bioSupported()||bioHasCred())return;
+  /* Verifier que le device supporte la biometrie */
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(ok=>{
+    if(ok) document.getElementById('bio-toast').style.display='block';
+  });
+}
+
 // Auto-login if session still active
 (function(){
   const t=sessionStorage.getItem('mf_token');
   if(t){GS_TOKEN=t;document.querySelector('.login-btn').textContent='Connexion...';
     gsLoadAll().then(ok=>{if(ok){document.getElementById('login-overlay').style.display='none';document.getElementById('main-app').style.display='';startLoad();}else{document.querySelector('.login-btn').textContent='Se connecter';sessionStorage.removeItem('mf_token');}});}
+  else{bioInitLogin();}
 })();
 
 /* ===== UTILS ===== */
