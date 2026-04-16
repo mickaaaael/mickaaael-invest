@@ -547,7 +547,7 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
   <div id="mgr-pea" style="display:none">
     <div class="sl" style="margin-top:.5rem">Achat / Vente PEA</div>
     <div class="frow">
-      <div><label>Operation</label><select id="pea-op"><option value="buy">Achat</option><option value="sell">Vente</option></select></div>
+      <div><label>Operation</label><select id="pea-op" onchange="onPEAOpChange()"><option value="buy">Achat</option><option value="sell">Vente</option><option value="deposit">Versement especes</option></select></div>
       <div>
         <label>ETF / Position</label>
         <select id="pea-nm-sel" onchange="onPEANmChange()"><option value="">-- Choisir --</option></select>
@@ -1470,6 +1470,16 @@ function rMgrTR(){
   row(TRA,'act','Action','rgba(167,139,250,.15)');row(TRE,'etf','ETF','rgba(91,108,240,.15)');row(TRO,'obl','Oblig.','rgba(240,194,127,.15)');row(TRP,'pe','PE','rgba(52,211,153,.12)');
   document.getElementById('tb-trm').innerHTML=h||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:1.5rem">Aucune position</td></tr>';
 }
+function onPEAOpChange(){
+  const op=document.getElementById('pea-op').value;
+  const isDeposit=op==='deposit';
+  ['pea-nm-sel','pea-nm-new','pea-tk','pea-qt'].forEach(id=>{const el=document.getElementById(id);if(el){el.closest('div').style.display=isDeposit?'none':'';} });
+  const avLabel=document.querySelector('label[for="pea-av"]')||document.getElementById('pea-av')?.previousElementSibling;
+  const avDiv=document.getElementById('pea-av')?.closest('div');
+  if(avDiv){avDiv.querySelector('label').textContent=isDeposit?'Montant (EUR)':'Prix unitaire (EUR)';}
+  const fraisDiv=document.getElementById('pea-fr')?.closest('div');
+  if(fraisDiv)fraisDiv.style.display=isDeposit?'none':'';
+}
 function buildPEANmSel(){
   const sel=document.getElementById('pea-nm-sel');
   if(!sel)return;
@@ -1610,6 +1620,19 @@ function addTR(){
 function delTR(type,i){if(type==='act'){TRA.splice(i,1);ss('mick_tra',TRA);}else if(type==='etf'){TRE.splice(i,1);ss('mick_tre',TRE);}else if(type==='obl'){TRO.splice(i,1);ss('mick_tro',TRO);}else{TRP.splice(i,1);ss('mick_trp',TRP);}rMgr();rTR();rOv();}
 function addPEA(){
   const op=document.getElementById('pea-op').value;
+  // Versement especes PEA
+  if(op==='deposit'){
+    const montant=parseFloat(document.getElementById('pea-av').value)||0;
+    if(montant<=0){showM('Montant invalide','i');return;}
+    const espIdx=PEAD.findIndex(p=>p.name.toLowerCase().includes('espece'));
+    if(espIdx>=0){PEAD[espIdx].val+=montant;PEAD[espIdx].inv+=montant;}
+    else{PEAD.push({name:'Especes PEA',t:null,parts:null,val:montant,inv:montant});}
+    ss('mick_pead',PEAD);
+    showM('Versement '+fe(montant)+' credite sur Especes PEA !','s');
+    document.getElementById('pea-av').value='';
+    document.getElementById('pea-op').value='buy';onPEAOpChange();
+    rMgr();rPEA();rOv();return;
+  }
   const sel=document.getElementById('pea-nm-sel');
   const name=sel.value==='__new__'?document.getElementById('pea-nm-new').value.trim():sel.value;
   const ticker=document.getElementById('pea-tk').value.trim()||null,parts=parseFloat(document.getElementById('pea-qt').value)||0,price=parseFloat(document.getElementById('pea-av').value)||0,frais=parseFloat(document.getElementById('pea-fr').value)||0;
