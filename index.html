@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#0f111a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mick Finance">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1861,6 +1862,15 @@ function checkAlerts(){
 // load() is called after successful login - auto-refresh every 5min once started
 let _loadStarted=false;
 function startLoad(){if(_loadStarted)return;_loadStarted=true;load();setInterval(load,300000);}
+
+/* ===== PWA SERVICE WORKER ===== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      console.log('SW registered, scope:',reg.scope);
+    }).catch(err=>console.log('SW error:',err));
+  });
+}
 </script>
 </body>
 </html>

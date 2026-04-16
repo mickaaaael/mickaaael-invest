@@ -1,0 +1,39 @@
+{
+  "name": "Patrimoine — Mick",
+  "short_name": "Mick Finance",
+  "description": "Tableau de bord patrimoine personnel",
+  "icons": [
+    {
+      "src": "logo3.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo3.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo3.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "logo3.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f111a",
+  "theme_color": "#0f111a",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "utilities"],
+  "lang": "fr"
+}
