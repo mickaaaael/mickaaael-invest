@@ -1885,27 +1885,29 @@ function setCrySort(s){crySort=s;document.querySelectorAll('.cry-sort').forEach(
 /* ===== 9. TODAY BANNER ===== */
 function updateToday(gtv,trv,cryv,peav){
   const key='snap_'+new Date().toISOString().slice(0,10);
-  const prev=sessionStorage.getItem(key);
+  /* localStorage (persist sur mobile entre sessions) avec clé par jour */
+  const prev=localStorage.getItem(key);
   const bar=document.getElementById('today-bar');
-  if(!prev){sessionStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));bar.style.display='none';return;}
+  /* Nettoyage des anciens snapshots (> 2 jours) */
+  Object.keys(localStorage).filter(k=>k.startsWith('snap_')&&k!==key).forEach(k=>localStorage.removeItem(k));
+  if(!prev){localStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));bar.style.display='none';return;}
   try{
     const snap=JSON.parse(prev);
-    /* Si le snapshot est trop ancien (champs manquants), on le réinitialise */
     if(snap.pea==null||snap.tr==null||snap.cry==null){
-      sessionStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));
+      localStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));
       bar.style.display='none';return;
     }
     const diff=gtv-snap.v;const pct=snap.v>0?(diff/snap.v)*100:0;
-    const trDiff=(snap.tr!=null)?trv-snap.tr:null;
-    const cryDiff=(snap.cry!=null)?cryv-snap.cry:null;
-    const peaDiff=(snap.pea!=null&&peav!=null)?peav-snap.pea:null;
-    const sep=`<span style="border-left:1px solid var(--brd);padding-left:12px;margin-left:4px"></span>`;
-    let parts=`<span class="today-label">Aujourd'hui</span><span class="today-val ${cl(diff)}">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:11px" class="${cl(diff)}">(${fp(pct)})</span>`;
-    if(trDiff!=null){parts+=`<span style="border-left:1px solid var(--brd);padding-left:12px;margin-left:4px;font-size:10px;color:var(--text3);font-weight:600">TR</span><span class="today-val ${cl(trDiff)}" style="font-size:13px">${(trDiff>=0?'+':'')+fe(trDiff)}</span>`;}
-    if(peaDiff!=null){parts+=`<span style="border-left:1px solid var(--brd);padding-left:12px;margin-left:4px;font-size:10px;color:var(--text3);font-weight:600">PEA</span><span class="today-val ${cl(peaDiff)}" style="font-size:13px">${(peaDiff>=0?'+':'')+fe(peaDiff)}</span>`;}
-    if(cryDiff!=null){parts+=`<span style="border-left:1px solid var(--brd);padding-left:12px;margin-left:4px;font-size:10px;color:var(--text3);font-weight:600">Crypto</span><span class="today-val ${cl(cryDiff)}" style="font-size:13px">${(cryDiff>=0?'+':'')+fe(cryDiff)}</span>`;}
-    parts+=`<span style="font-size:10px;color:var(--text3);margin-left:auto">depuis ${new Date(snap.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;
-    bar.style.display='flex';
+    const trDiff=trv-snap.tr;const trPct=snap.tr>0?(trDiff/snap.tr)*100:0;
+    const peaDiff=peav-snap.pea;const peaPct=snap.pea>0?(peaDiff/snap.pea)*100:0;
+    const cryDiff=cryv-snap.cry;const cryPct=snap.cry>0?(cryDiff/snap.cry)*100:0;
+    const sec=(lbl,diff,pct)=>`<span style="border-left:1px solid var(--brd);padding-left:10px;margin-left:4px;display:flex;align-items:center;gap:4px;flex-shrink:0"><span style="font-size:10px;color:var(--text3);font-weight:600">${lbl}</span><span class="today-val ${cl(diff)}" style="font-size:12px">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:10px" class="${cl(diff)}">(${fp(pct)})</span></span>`;
+    let parts=`<span class="today-label" style="flex-shrink:0">Aujourd'hui</span><span style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="today-val ${cl(diff)}">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:11px" class="${cl(diff)}">(${fp(pct)})</span></span>`;
+    parts+=sec('TR',trDiff,trPct);
+    parts+=sec('PEA',peaDiff,peaPct);
+    parts+=sec('Crypto',cryDiff,cryPct);
+    parts+=`<span style="font-size:10px;color:var(--text3);margin-left:auto;flex-shrink:0">depuis ${new Date(snap.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;
+    bar.style.display='flex';bar.style.flexWrap='wrap';bar.style.gap='6px';
     bar.innerHTML=parts;
   }catch(e){bar.style.display='none';}
 }
