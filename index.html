@@ -1002,11 +1002,19 @@ function renderTicker(){
   if(CP_USD.BTC){items.push({name:'BTC',price:CP_USD.BTC,chg:CP_CHG.BTC||0,cur:'$'});}
   // ETH USD
   if(CP_USD.ETH){items.push({name:'ETH',price:CP_USD.ETH,chg:CP_CHG.ETH||0,cur:'$'});}
-  // helper: extract change% from Yahoo raw (field name may vary)
+  // helper: extract change% from Yahoo raw — 3 niveaux de fallback
   function yhChg(raw){
+    // 1. changePercent direct (calculé côté GAS)
     const c=raw.changePercent||raw.changePct||raw.regularMarketChangePercent||0;
     if(c!==0)return c;
-    if(raw.previousClose&&raw.previousClose>0&&raw.price)return((raw.price-raw.previousClose)/raw.previousClose)*100;
+    // 2. price vs previousClose
+    if(raw.previousClose&&raw.previousClose>0&&raw.price)
+      return((raw.price-raw.previousClose)/raw.previousClose)*100;
+    // 3. variation absolue (change) → déduit prevClose
+    if(raw.change&&raw.change!==0&&raw.price>0){
+      const pc=raw.price-raw.change;
+      if(pc>0)return(raw.change/pc)*100;
+    }
     return 0;
   }
   // Physical Gold
