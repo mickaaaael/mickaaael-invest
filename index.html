@@ -1003,7 +1003,12 @@ function renderTicker(){
   // ETH USD
   if(CP_USD.ETH){items.push({name:'ETH',price:CP_USD.ETH,chg:CP_CHG.ETH||0,cur:'$'});}
   // helper: extract change% from Yahoo raw (field name may vary)
-  function yhChg(raw){return raw.changePercent||raw.changePct||raw.regularMarketChangePercent||0;}
+  function yhChg(raw){
+    const c=raw.changePercent||raw.changePct||raw.regularMarketChangePercent||0;
+    if(c!==0)return c;
+    if(raw.previousClose&&raw.previousClose>0&&raw.price)return((raw.price-raw.previousClose)/raw.previousClose)*100;
+    return 0;
+  }
   // Physical Gold
   const goldRaw=SP_RAW['IGLN.L'];
   if(goldRaw){items.push({name:'GOLD',price:goldRaw.price,chg:yhChg(goldRaw),cur:goldRaw.currency==='GBp'?'p':'$'});}
@@ -1884,32 +1889,64 @@ function setCrySort(s){crySort=s;document.querySelectorAll('.cry-sort').forEach(
 
 /* ===== 9. TODAY BANNER ===== */
 function updateToday(gtv,trv,cryv,peav){
-  const key='snap_'+new Date().toISOString().slice(0,10);
-  /* localStorage (persist sur mobile entre sessions) avec clé par jour */
-  const prev=localStorage.getItem(key);
+  const todayKey='snap_'+new Date().toISOString().slice(0,10);
+  const yestKey='snap_'+new Date(Date.now()-86400000).toISOString().slice(0,10);
   const bar=document.getElementById('today-bar');
-  /* Nettoyage des anciens snapshots (> 2 jours) */
-  Object.keys(localStorage).filter(k=>k.startsWith('snap_')&&k!==key).forEach(k=>localStorage.removeItem(k));
-  if(!prev){localStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));bar.style.display='none';return;}
+  /* Nettoyage : on garde seulement aujourd'hui + hier */
+  Object.keys(localStorage).filter(k=>k.startsWith('snap_')&&k!==todayKey&&k!==yestKey).forEach(k=>localStorage.removeItem(k));
+
+  const todayRaw=localStorage.getItem(todayKey);
+  const yestRaw=localStorage.getItem(yestKey);
+
+  /* Première ouverture du jour → sauvegarder snapshot et comparer avec hier si dispo */
+  if(!todayRaw){
+    localStorage.setItem(todayKey,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));
+    if(yestRaw){
+      try{
+        const ref=JSON.parse(yestRaw);
+        if(ref.v!=null&&ref.tr!=null&&ref.pea!=null&&ref.cry!=null){
+          _drawTodayBar(bar,gtv,trv,cryv,peav,ref,'hier');
+          return;
+        }
+      }catch(e){}
+    }
+    bar.style.display='none';
+    return;
+  }
+
+  /* Snapshot du jour existe → comparaison normale */
   try{
-    const snap=JSON.parse(prev);
+    const snap=JSON.parse(todayRaw);
     if(snap.pea==null||snap.tr==null||snap.cry==null){
-      localStorage.setItem(key,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));
+      localStorage.setItem(todayKey,JSON.stringify({v:gtv,tr:trv,cry:cryv,pea:peav,t:Date.now()}));
       bar.style.display='none';return;
     }
-    const diff=gtv-snap.v;const pct=snap.v>0?(diff/snap.v)*100:0;
-    const trDiff=trv-snap.tr;const trPct=snap.tr>0?(trDiff/snap.tr)*100:0;
-    const peaDiff=peav-snap.pea;const peaPct=snap.pea>0?(peaDiff/snap.pea)*100:0;
-    const cryDiff=cryv-snap.cry;const cryPct=snap.cry>0?(cryDiff/snap.cry)*100:0;
-    const sec=(lbl,diff,pct)=>`<span style="border-left:1px solid var(--brd);padding-left:10px;margin-left:4px;display:flex;align-items:center;gap:4px;flex-shrink:0"><span style="font-size:10px;color:var(--text3);font-weight:600">${lbl}</span><span class="today-val ${cl(diff)}" style="font-size:12px">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:10px" class="${cl(diff)}">(${fp(pct)})</span></span>`;
-    let parts=`<span class="today-label" style="flex-shrink:0">Aujourd'hui</span><span style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="today-val ${cl(diff)}">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:11px" class="${cl(diff)}">(${fp(pct)})</span></span>`;
-    parts+=sec('TR',trDiff,trPct);
-    parts+=sec('PEA',peaDiff,peaPct);
-    parts+=sec('Crypto',cryDiff,cryPct);
-    parts+=`<span style="font-size:10px;color:var(--text3);margin-left:auto;flex-shrink:0">depuis ${new Date(snap.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>`;
-    bar.style.display='flex';bar.style.flexWrap='wrap';bar.style.gap='6px';
-    bar.innerHTML=parts;
+    _drawTodayBar(bar,gtv,trv,cryv,peav,snap,null);
   }catch(e){bar.style.display='none';}
+}
+
+function _drawTodayBar(bar,gtv,trv,cryv,peav,snap,dayLabel){
+  const diff=gtv-snap.v;const pct=snap.v>0?(diff/snap.v)*100:0;
+  const trDiff=trv-snap.tr;const trPct=snap.tr>0?(trDiff/snap.tr)*100:0;
+  const peaDiff=peav-snap.pea;const peaPct=snap.pea>0?(peaDiff/snap.pea)*100:0;
+  const cryDiff=cryv-snap.cry;const cryPct=snap.cry>0?(cryDiff/snap.cry)*100:0;
+  const sec=(lbl,d,p)=>`<span style="border-left:1px solid var(--brd);padding-left:10px;margin-left:4px;display:flex;align-items:center;gap:4px;flex-shrink:0"><span style="font-size:10px;color:var(--text3);font-weight:600">${lbl}</span><span class="today-val ${cl(d)}" style="font-size:12px">${(d>=0?'+':'')+fe(d)}</span><span style="font-size:10px" class="${cl(d)}">(${fp(p)})</span></span>`;
+  let parts=`<span class="today-label" style="flex-shrink:0">Aujourd'hui</span><span style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="today-val ${cl(diff)}">${(diff>=0?'+':'')+fe(diff)}</span><span style="font-size:11px" class="${cl(diff)}">(${fp(pct)})</span></span>`;
+  parts+=sec('TR',trDiff,trPct);
+  parts+=sec('PEA',peaDiff,peaPct);
+  parts+=sec('Crypto',cryDiff,cryPct);
+  const timeLabel=dayLabel?dayLabel:new Date(snap.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  parts+=`<span style="font-size:10px;color:var(--text3);margin-left:auto;flex-shrink:0">depuis ${timeLabel}</span>`;
+  /* Bouton reset discret */
+  parts+=`<span onclick="resetTodaySnap()" title="Réinitialiser la référence" style="cursor:pointer;color:var(--text3);font-size:14px;padding:0 4px;flex-shrink:0;opacity:.5" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">↺</span>`;
+  bar.style.display='flex';bar.style.flexWrap='wrap';bar.style.gap='6px';
+  bar.innerHTML=parts;
+}
+
+function resetTodaySnap(){
+  const todayKey='snap_'+new Date().toISOString().slice(0,10);
+  localStorage.removeItem(todayKey);
+  showM('Référence réinitialisée — elle sera mise à jour au prochain rafraîchissement','i');
 }
 
 /* ===== 8. TREND ARROWS ===== */
