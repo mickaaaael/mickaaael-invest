@@ -286,6 +286,34 @@ a,button,input,select{transition:all .15s ease}
 .toast-fixed.toast-i{background:rgba(91,108,240,.18);color:#8b7cf6;border:1px solid rgba(91,108,240,.3)}
 .toast-fixed.toast-e{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.3)}
 
+/* === ANALYTICS CARDS === */
+.ov-analytics{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:1.5rem}
+.ana-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:18px 20px;transition:all .25s;position:relative;overflow:hidden}
+.ana-card:hover{border-color:var(--brd2);box-shadow:var(--shadow);transform:translateY(-1px)}
+.ana-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.7}
+.ana-card.ana-mvts::before{background:linear-gradient(90deg,#34d399,#f87171)}
+.ana-card.ana-best::before{background:linear-gradient(90deg,#5b6cf0,#8b7cf6)}
+.ana-card.ana-conc::before{background:linear-gradient(90deg,#f0c27f,#fbbf24)}
+.ana-card.ana-tax::before{background:linear-gradient(90deg,#60a5fa,#93c5fd)}
+.ana-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.ana-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:12px}
+.ana-row+.ana-row{border-top:1px solid var(--brd)}
+.ana-name{color:var(--text);font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.ana-val{font-weight:700;font-size:13px;flex-shrink:0}
+.ana-sub{font-size:10px;color:var(--text3)}
+.ana-warning{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.18);color:var(--neg);padding:6px 10px;border-radius:8px;font-size:11px;margin-top:8px;font-weight:600}
+.ana-ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.18);color:var(--pos);padding:6px 10px;border-radius:8px;font-size:11px;margin-top:8px;font-weight:600}
+.alloc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px}
+.alloc-name{width:120px;font-weight:600;flex-shrink:0}
+.alloc-bar{flex:1;height:14px;background:var(--bg3);border-radius:7px;overflow:hidden;position:relative;min-width:80px}
+.alloc-bar-actual{height:100%;border-radius:7px;transition:width .5s ease}
+.alloc-bar-target{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;opacity:.7;border-radius:1px}
+.alloc-pct{width:170px;text-align:right;font-size:11px;color:var(--text2);flex-shrink:0;font-variant-numeric:tabular-nums}
+.bench-row{display:grid;grid-template-columns:1fr 90px 90px 90px;gap:10px;align-items:center;padding:9px 0;font-size:12px}
+.bench-row+.bench-row{border-top:1px solid var(--brd)}
+.bench-row.bench-hdr{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-weight:700;padding-bottom:6px;border-bottom:1px solid var(--brd2)}
+@media(max-width:600px){.alloc-name{width:80px;font-size:11px}.alloc-pct{width:auto;font-size:10px}.bench-row{grid-template-columns:1fr 70px 70px;gap:6px}.bench-row .bench-hide{display:none}}
+
 /* === SPACING === */
 .g2{gap:16px}
 .hero{margin-bottom:2rem}
@@ -382,14 +410,14 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
 <!-- TABS -->
 <div class="tabs-wrap" id="tabs-wrap">
   <div class="tabs" id="main-tabs">
-    <button class="tab active" onclick="showTab('ov')">Vue globale</button>
-    <button class="tab" onclick="showTab('pee')">PEE</button>
-    <button class="tab" onclick="showTab('tr')">Trade Republic</button>
-    <button class="tab" onclick="showTab('pea')">PEA</button>
-    <button class="tab" onclick="showTab('cry')">Crypto</button>
-    <button class="tab" onclick="showTab('la')">Livret A</button>
-    <button class="tab" onclick="showTab('hist')">Historique</button>
-    <button class="tab" onclick="showTab('mgr')">Gerer</button>
+    <button class="tab active" onclick="showTab('ov')">🏠 Vue globale</button>
+    <button class="tab" onclick="showTab('pee')">🏢 PEE</button>
+    <button class="tab" onclick="showTab('tr')">📈 Trade Republic</button>
+    <button class="tab" onclick="showTab('pea')">🇫🇷 PEA</button>
+    <button class="tab" onclick="showTab('cry')">₿ Crypto</button>
+    <button class="tab" onclick="showTab('la')">🏦 Livret A</button>
+    <button class="tab" onclick="showTab('hist')">📊 Historique</button>
+    <button class="tab" onclick="showTab('mgr')">⚙️ Gerer</button>
   </div>
 </div>
 
@@ -400,6 +428,9 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="today-bar" id="today-bar" style="display:none"></div>
     <div class="hero" id="hero-ov"></div>
     <div class="mets" id="met-ov"></div>
+    <div class="ov-analytics" id="ov-analytics"></div>
+    <div class="card" id="ana-alloc-wrap" style="margin-bottom:1rem"></div>
+    <div class="card" id="ana-bench-wrap" style="margin-bottom:1rem"></div>
     <div class="g2">
       <div class="card"><div class="sl" style="margin-top:0">Repartition par poche</div><div class="cw" style="height:200px"><canvas id="c-po"></canvas></div><div class="leg" id="lg-po"></div></div>
       <div class="card"><div class="sl" style="margin-top:0">Performance par poche</div><div class="cw" style="height:200px"><canvas id="c-pf"></canvas></div></div>
@@ -531,6 +562,17 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
 <!-- ==================== GERER ==================== -->
 <div class="pg" id="pg-mgr">
   <div class="alrt" id="msg" style="display:none"></div>
+  <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:14px 18px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--text)">💾 Sauvegardes</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Exporter / importer toutes tes donnees (JSON)</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btnp" onclick="exportData()" style="font-size:11px;padding:8px 14px">📥 Exporter</button>
+      <button class="btnp" onclick="document.getElementById('import-file').click()" style="font-size:11px;padding:8px 14px;background:var(--bg3);color:var(--text);border:1px solid var(--brd2)">📤 Importer</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
   <div class="ptbs" id="mgr-pt">
     <button class="ptb active" onclick="showMgr('mensuel')">Mensuel</button>
     <button class="ptb" onclick="showMgr('crypto')">Crypto</button>
@@ -559,6 +601,18 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <button class="btnp" onclick="captureHistMonth()">Ajouter a l'historique</button>
     </div>
     <div id="hist-extra-list" style="margin-top:10px"></div>
+
+    <div class="sl" style="margin-top:1.8rem">🎯 Allocation cible</div>
+    <div class="info">Definis ton allocation ideale en %. Le total doit faire 100%.</div>
+    <div id="alloc-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:10px"></div>
+    <button class="btnp" onclick="saveAllocTargets()" style="margin-top:10px">Sauvegarder l'allocation</button>
+
+    <div class="sl" style="margin-top:1.8rem">📅 PEA — annee d'ouverture</div>
+    <div class="info">Necessaire pour calculer la fiscalite (exoneration apres 5 ans).</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-top:10px">
+      <div><input id="pea-open-year" type="number" min="2000" max="2030" placeholder="2020" style="padding:9px 14px;font-size:13px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;width:120px"></div>
+      <button class="btnp" onclick="savePeaOpenYear()">Sauvegarder</button>
+    </div>
   </div>
   <div id="mgr-crypto" style="display:none">
     <div class="sl" style="margin-top:.5rem">Modifier une position</div>
@@ -1082,6 +1136,34 @@ function rHistExtraList(){
   h+='</div>';
   el.innerHTML=h;
 }
+function rMgrAllocForm(){
+  const t=getAllocTargets();
+  const labs={pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto',la:'Livret A'};
+  const colors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'};
+  const el=document.getElementById('alloc-form');
+  if(!el)return;
+  el.innerHTML=['pee','tr','pea','crypto','la'].map(s=>`<div><label style="font-size:11px;color:${colors[s]};font-weight:700">${labs[s]} (%)</label><input id="alloc-${s}" type="number" min="0" max="100" step="1" value="${t[s]||0}" style="padding:9px 12px;font-size:13px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);width:100%;font-family:inherit;outline:none;text-align:right"></div>`).join('');
+}
+function saveAllocTargets(){
+  const t={};
+  let total=0;
+  ['pee','tr','pea','crypto','la'].forEach(s=>{const v=parseFloat(document.getElementById('alloc-'+s).value)||0;t[s]=v;total+=v;});
+  if(Math.abs(total-100)>0.5){showM('Le total doit faire 100% (actuel: '+total.toFixed(1)+'%)','e');return;}
+  ss('mick_alloc_targets',t);
+  showM('Allocation cible sauvegardee !','s');
+  rOv();
+}
+function rMgrPeaOpen(){
+  const el=document.getElementById('pea-open-year');
+  if(el)el.value=getPeaOpenYear();
+}
+function savePeaOpenYear(){
+  const v=parseInt(document.getElementById('pea-open-year').value,10);
+  if(isNaN(v)||v<2000||v>2030){showM('Annee invalide','e');return;}
+  localStorage.setItem('mick_pea_open_year',v);
+  showM('Annee d\'ouverture sauvegardee !','s');
+  rOv();
+}
 function delHistExtra(i){
   const extra=ls('mick_hist_extra',[]);
   const name=extra[i]?extra[i].m:'';
@@ -1273,6 +1355,155 @@ function rOv(){
   const evoKeys={all:'Tout',pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto',la:'Livret A'};
   document.getElementById('evo-filters').innerHTML=Object.entries(evoKeys).map(([k,l])=>`<button class="evo-btn${evoFilter===k?' active':''}" onclick="setEvoFilter('${k}')">${l}</button>`).join('');
   buildEvoChart();
+  /* Analytics cards */
+  rAnalytics(sd,gtv,gti,ytdStart);
+}
+
+/* ===== ANALYTICS HELPERS ===== */
+const ALLOC_DEFAULT={pee:30,tr:20,pea:25,crypto:15,la:10};
+const BENCH_YSTART={'^GSPC':5882,'^FCHI':7382,'CW8.PA':51.5,'IGLN.L':92};
+function getAllocTargets(){return ls('mick_alloc_targets',ALLOC_DEFAULT);}
+function getPeaOpenYear(){return parseInt(localStorage.getItem('mick_pea_open_year')||(new Date().getFullYear()-1),10);}
+
+function getAllPositions(){
+  const out=[];
+  ls('mick_pee',PEE).forEach(f=>{if(f.val>0||f.inv>0){const navData=f.parts&&f.parts>0&&PEENAV[f.name]?PEENAV[f.name]:null;const v=navData?+(f.parts*navData.nav).toFixed(2):f.val;out.push({name:f.name,val:v,inv:f.inv,chg:0,src:'PEE'});}});
+  TRA.forEach(a=>{const px=gS(a.t);const v=px&&a.qty>0?px*a.qty:a.val;const chg=a.t&&SP_RAW[a.t]?yhChg(SP_RAW[a.t]):0;out.push({name:a.name,val:v,inv:a.inv,chg,src:'TR'});});
+  TRE.forEach(e=>{const px=e.t?gS(e.t):null;const v=px&&e.qty?px*e.qty:e.val;const chg=e.t&&SP_RAW[e.t]?yhChg(SP_RAW[e.t]):0;out.push({name:e.name,val:v,inv:e.inv,chg,src:'TR'});});
+  TRO.forEach(o=>{out.push({name:o.name,val:o.val,inv:o.inv,chg:0,src:'TR'});});
+  TRP.forEach(p=>{out.push({name:p.name,val:p.val,inv:p.inv,chg:0,src:'TR'});});
+  PEAD.forEach(p=>{const px=p.t?gS(p.t):null;const v=px&&p.parts?px*p.parts:p.val;const chg=p.t&&SP_RAW[p.t]?yhChg(SP_RAW[p.t]):0;out.push({name:p.name,val:v,inv:p.inv,chg,src:'PEA'});});
+  aC().forEach(c=>{const px=gC(c.symbol);const v=px*c.qty;const inv=c.avgBuy?c.avgBuy*c.qty:0;const chg=CP_CHG[c.symbol]||0;out.push({name:c.symbol+(c.pl?' ('+c.pl+')':''),val:v,inv,chg,src:'Crypto'});});
+  return out.filter(p=>p.val>0||p.inv>0);
+}
+
+/* helper: extract change% from Yahoo raw (3 niveaux de fallback) */
+function yhChg(raw){
+  const c=raw.changePercent||raw.changePct||raw.regularMarketChangePercent||0;
+  if(c!==0)return c;
+  if(raw.previousClose&&raw.previousClose>0&&raw.price)return((raw.price-raw.previousClose)/raw.previousClose)*100;
+  if(raw.change&&raw.change!==0&&raw.price>0){const pc=raw.price-raw.change;if(pc>0)return(raw.change/pc)*100;}
+  return 0;
+}
+
+function rAnalytics(sd,gtv,gti,ytdStart){
+  rAnaTopRow(sd,gtv);
+  rAnaAlloc(sd,gtv);
+  rAnaBench(gtv,gti,ytdStart);
+}
+
+function rAnaTopRow(sd,gtv){
+  const pos=getAllPositions();
+  /* Top mouvements du jour : tri par impact EUR */
+  const withChg=pos.filter(p=>p.chg!==0).map(p=>({...p,impact:p.val*p.chg/100})).sort((a,b)=>Math.abs(b.impact)-Math.abs(a.impact));
+  const gainers=withChg.filter(p=>p.impact>0).slice(0,3);
+  const losers=withChg.filter(p=>p.impact<0).slice(0,3);
+  let mvtsHTML='<div class="ana-card ana-mvts"><div class="ana-title">📊 Top mouvements du jour</div>';
+  if(!withChg.length){mvtsHTML+='<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 0">Pas de variations dispo</div>';}
+  else{
+    if(gainers.length){gainers.forEach(p=>{mvtsHTML+=`<div class="ana-row"><span class="ana-name">${p.name}</span><span class="ana-val pos">+${fe(p.impact)} <span class="ana-sub">(${fp(p.chg)})</span></span></div>`;});}
+    if(losers.length){losers.forEach(p=>{mvtsHTML+=`<div class="ana-row"><span class="ana-name">${p.name}</span><span class="ana-val neg">${fe(p.impact)} <span class="ana-sub">(${fp(p.chg)})</span></span></div>`;});}
+  }
+  mvtsHTML+='</div>';
+
+  /* Best/worst positions cumulatif */
+  const withPnl=pos.filter(p=>p.inv>0).map(p=>({...p,pnl:p.val-p.inv,pct:p.inv>0?((p.val-p.inv)/p.inv)*100:0})).sort((a,b)=>b.pnl-a.pnl);
+  const best=withPnl.slice(0,3);
+  const worst=withPnl.slice(-3).reverse();
+  let bestHTML='<div class="ana-card ana-best"><div class="ana-title">🏆 Top performers (P&L cumule)</div>';
+  if(!withPnl.length){bestHTML+='<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 0">Pas de positions investies</div>';}
+  else{
+    best.forEach(p=>{bestHTML+=`<div class="ana-row"><span class="ana-name">${p.name}</span><span class="ana-val ${cl(p.pnl)}">${(p.pnl>=0?'+':'')+fe(p.pnl)} <span class="ana-sub">(${fp(p.pct)})</span></span></div>`;});
+    if(worst.length&&worst[0].pnl<0){worst.filter(p=>p.pnl<0).slice(0,2).forEach(p=>{bestHTML+=`<div class="ana-row"><span class="ana-name">${p.name}</span><span class="ana-val neg">${fe(p.pnl)} <span class="ana-sub">(${fp(p.pct)})</span></span></div>`;});}
+  }
+  bestHTML+='</div>';
+
+  /* Concentration */
+  const sorted=pos.slice().sort((a,b)=>b.val-a.val);
+  const top=sorted[0];
+  const top3=sorted.slice(0,3);
+  const top3Sum=top3.reduce((s,p)=>s+p.val,0);
+  const topPct=top&&gtv>0?(top.val/gtv)*100:0;
+  const top3Pct=gtv>0?(top3Sum/gtv)*100:0;
+  let concHTML='<div class="ana-card ana-conc"><div class="ana-title">⚖️ Concentration</div>';
+  if(top){
+    concHTML+=`<div class="ana-row"><span class="ana-name">Plus grosse position</span><span class="ana-val">${topPct.toFixed(1)}%</span></div>`;
+    concHTML+=`<div class="ana-row"><span class="ana-name" style="font-size:11px;color:var(--text2)">${top.name}</span><span class="ana-val" style="font-size:11px;color:var(--text2)">${fe(top.val)}</span></div>`;
+    concHTML+=`<div class="ana-row"><span class="ana-name">Top 3 positions</span><span class="ana-val">${top3Pct.toFixed(1)}%</span></div>`;
+    if(topPct>20)concHTML+='<div class="ana-warning">⚠ Concentration elevee sur '+top.name+'</div>';
+    else if(topPct<10)concHTML+='<div class="ana-ok">✓ Bonne diversification</div>';
+  }else concHTML+='<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 0">Pas de positions</div>';
+  concHTML+='</div>';
+
+  /* Estimation fiscale */
+  const peaOpen=getPeaOpenYear();
+  const peaYears=new Date().getFullYear()-peaOpen;
+  const peaPnl=Math.max(0,sd.pea.tv-sd.pea.ti);
+  const trPnl=Math.max(0,sd.tr.tv-sd.tr.ti);
+  const cryPnl=Math.max(0,sd.crypto.tv-sd.crypto.ti);
+  const peaTax=peaYears>=5?peaPnl*0.172:peaPnl*0.30;
+  const peaTaxLbl=peaYears>=5?'17.2% PS':'30% PFU';
+  const trTax=trPnl*0.30;
+  const cryTax=cryPnl*0.30;
+  const totalTax=peaTax+trTax+cryTax;
+  let taxHTML='<div class="ana-card ana-tax"><div class="ana-title">💰 Estimation fiscale (si vente)</div>';
+  taxHTML+=`<div class="ana-row"><span class="ana-name">PEA <span class="ana-sub">(${peaYears} ans · ${peaTaxLbl})</span></span><span class="ana-val">${fe(peaTax)}</span></div>`;
+  taxHTML+=`<div class="ana-row"><span class="ana-name">TR <span class="ana-sub">(30%)</span></span><span class="ana-val">${fe(trTax)}</span></div>`;
+  taxHTML+=`<div class="ana-row"><span class="ana-name">Crypto <span class="ana-sub">(30%)</span></span><span class="ana-val">${fe(cryTax)}</span></div>`;
+  taxHTML+=`<div class="ana-row" style="margin-top:4px"><span class="ana-name" style="color:var(--gold);font-weight:700">Total estime</span><span class="ana-val" style="color:var(--gold)">${fe(totalTax)}</span></div>`;
+  taxHTML+='</div>';
+
+  document.getElementById('ov-analytics').innerHTML=mvtsHTML+bestHTML+concHTML+taxHTML;
+}
+
+function rAnaAlloc(sd,gtv){
+  const targets=getAllocTargets();
+  const colors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'};
+  const labs={pee:'PEE',tr:'Trade Republic',pea:'PEA',crypto:'Crypto',la:'Livret A'};
+  let h='<div class="sl" style="margin-top:0;display:flex;align-items:center;justify-content:space-between"><span>🎯 Allocation cible vs reelle</span><span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0">Modifie dans Gerer → Mensuel</span></div>';
+  ['pee','tr','pea','crypto','la'].forEach(s=>{
+    const cur=gtv>0?(sd[s].tv/gtv)*100:0;
+    const tgt=targets[s]||0;
+    const diff=cur-tgt;
+    const color=colors[s];
+    const max=Math.max(cur,tgt,1);
+    const actualW=(cur/Math.max(max,30))*100;
+    const targetX=(tgt/Math.max(max,30))*100;
+    h+=`<div class="alloc-row">
+      <span class="alloc-name" style="color:${color}">${labs[s]}</span>
+      <div class="alloc-bar"><div class="alloc-bar-actual" style="width:${actualW}%;background:linear-gradient(90deg,${color},${color}cc)"></div><div class="alloc-bar-target" style="left:${targetX}%"></div></div>
+      <span class="alloc-pct">${cur.toFixed(1)}% / <span style="color:var(--text3)">${tgt}%</span> <span class="${cl(diff)}" style="font-size:10px">(${diff>=0?'+':''}${diff.toFixed(1)})</span></span>
+    </div>`;
+  });
+  document.getElementById('ana-alloc-wrap').innerHTML=h;
+}
+
+function rAnaBench(gtv,gti,ytdStart){
+  const ystartVal=ytdStart?ytdStart.val:gtv;
+  const portYTD=ystartVal>0?((gtv-ystartVal)/ystartVal)*100:0;
+  const benchs=[
+    {name:'S&P 500',ticker:'^GSPC',color:'#5b8def'},
+    {name:'CAC 40',ticker:'^FCHI',color:'#34d399'},
+    {name:'MSCI World',ticker:'CW8.PA',color:'#f0c27f'},
+    {name:'Or (IGLN)',ticker:'IGLN.L',color:'#fbbf24'}
+  ];
+  let h='<div class="sl" style="margin-top:0">📈 Performance vs benchmarks (YTD)</div>';
+  h+='<div class="bench-row bench-hdr"><span>Benchmark</span><span style="text-align:right">Prix</span><span style="text-align:right" class="bench-hide">Debut</span><span style="text-align:right">YTD</span></div>';
+  h+=`<div class="bench-row" style="background:rgba(91,108,240,.06);border-radius:8px;padding:10px 12px"><span style="font-weight:700;color:var(--accent2)">🎯 Mon portefeuille</span><span style="text-align:right;font-weight:600">${fe(gtv)}</span><span style="text-align:right;color:var(--text3);font-size:11px" class="bench-hide">${ytdStart?fe(ystartVal):'—'}</span><span style="text-align:right;font-weight:700" class="${cl(portYTD)}">${(portYTD>=0?'+':'')+portYTD.toFixed(2)}%</span></div>`;
+  benchs.forEach(b=>{
+    const raw=SP_RAW[b.ticker];
+    if(!raw){h+=`<div class="bench-row"><span style="color:${b.color}">${b.name}</span><span style="text-align:right;color:var(--text3)">—</span><span style="text-align:right;color:var(--text3)" class="bench-hide">—</span><span style="text-align:right;color:var(--text3)">—</span></div>`;return;}
+    const cur=raw.price;
+    const ystart=BENCH_YSTART[b.ticker]||cur;
+    const ytdPct=ystart>0?((cur-ystart)/ystart)*100:0;
+    const diff=ytdPct-portYTD;
+    h+=`<div class="bench-row"><span style="color:${b.color};font-weight:600">${b.name}</span><span style="text-align:right">${cur.toLocaleString('fr-FR',{maximumFractionDigits:2})}</span><span style="text-align:right;color:var(--text3);font-size:11px" class="bench-hide">${ystart.toLocaleString('fr-FR',{maximumFractionDigits:2})}</span><span style="text-align:right;font-weight:700" class="${cl(ytdPct)}">${(ytdPct>=0?'+':'')+ytdPct.toFixed(2)}%</span></div>`;
+  });
+  if(portYTD!==0){
+    const beating=benchs.filter(b=>{const r=SP_RAW[b.ticker];if(!r)return false;const p=BENCH_YSTART[b.ticker]?((r.price-BENCH_YSTART[b.ticker])/BENCH_YSTART[b.ticker])*100:0;return portYTD>p;}).length;
+    h+=`<div style="text-align:center;font-size:11px;color:var(--text2);margin-top:10px;padding-top:10px;border-top:1px solid var(--brd)">Tu bats <strong style="color:${beating>=2?'var(--pos)':'var(--gold)'}">${beating}/${benchs.length}</strong> benchmarks cette annee</div>`;
+  }
+  document.getElementById('ana-bench-wrap').innerHTML=h;
 }
 
 /* ===== EVO CHART FILTER ===== */
@@ -1676,7 +1907,7 @@ function rHist(){
 function showMgr(s){cMgr=s;document.querySelectorAll('#mgr-pt .ptb').forEach((el,i)=>el.classList.toggle('active',['mensuel','crypto','tr','pea','pee','la','alerts'][i]===s));['mensuel','crypto','tr','pea','pee','la','alerts'].forEach(id=>{document.getElementById('mgr-'+id).style.display=id===s?'block':'none';});rMgr();}
 function tglTr(){const isT=document.getElementById('op-t').value==='transfer';document.getElementById('op-tow').style.display=isT?'':'none';document.getElementById('op-pw').style.display=isT?'none':'';}
 function tglObl(){document.getElementById('tr-cpw').style.display=document.getElementById('tr-tp').value==='obl'?'':'none';buildTRNmSel();}
-function rMgr(){if(cMgr==='mensuel'){rMgrMensuel();rMgrTRB();rHistExtraList();}else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='la')rMgrLA();else if(cMgr==='alerts')rMgrAlerts();else rMgrPEE();}
+function rMgr(){if(cMgr==='mensuel'){rMgrMensuel();rMgrTRB();rHistExtraList();rMgrAllocForm();rMgrPeaOpen();}else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='la')rMgrLA();else if(cMgr==='alerts')rMgrAlerts();else rMgrPEE();}
 function rMgrMensuel(){
   let h='',n=0;
   const inp=(id,val)=>'<input id="mu-'+id+'" type="number" step="0.01" value="'+(val||'')+'" style="width:150px;padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);text-align:right;font-family:inherit;outline:none">';
@@ -1999,6 +2230,39 @@ function showM(msg,t){
   if(el){el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
   const toast=document.getElementById('toast-fixed');
   if(toast){toast.textContent=msg;toast.className='toast-fixed toast-'+t;toast.style.display='block';clearTimeout(toast._tid);toast._tid=setTimeout(()=>{toast.style.display='none';},3500);}
+}
+/* ===== EXPORT / IMPORT JSON ===== */
+function exportData(){
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith('mick_')||k.startsWith('mp9')||k.startsWith('mo9'));
+  const data={};
+  keys.forEach(k=>{try{data[k]=JSON.parse(localStorage.getItem(k));}catch(e){data[k]=localStorage.getItem(k);}});
+  const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),data},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='mick-finance-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showM('Sauvegarde exportee !','s');
+}
+function importData(ev){
+  const file=ev.target.files[0];
+  if(!file)return;
+  if(!confirm('Importer ce fichier va remplacer toutes tes donnees actuelles. Continuer ?')){ev.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const obj=JSON.parse(e.target.result);
+      const data=obj.data||obj;
+      Object.keys(data).forEach(k=>{
+        const v=data[k];
+        localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+      });
+      showM('Donnees importees ! Rechargement...','s');
+      setTimeout(()=>location.reload(),1200);
+    }catch(err){showM('Fichier invalide : '+err.message,'e');}
+  };
+  reader.readAsText(file);
+  ev.target.value='';
 }
 function showTab(t){const ns=['ov','pee','tr','pea','cry','la','hist','mgr'];document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',ns[i]===t));document.querySelectorAll('.pg').forEach(el=>el.classList.remove('active'));document.getElementById('pg-'+t).classList.add('active');if(ok){if(t==='ov')rOv();if(t==='tr')rTR();if(t==='pea')rPEA();if(t==='cry')rCry();if(t==='la')rLA();if(t==='hist')rHist();if(t==='mgr')rMgr();if(t==='pee')rPEE();}}
 
