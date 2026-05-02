@@ -1007,6 +1007,7 @@ async function load(){
   document.getElementById('ov-body').style.display='block';
   renderTicker();
   rAll();
+  autoCapture();
 }
 
 /* ===== TICKER BANNER ===== */
@@ -1089,10 +1090,8 @@ function delHistExtra(i){
   rHistExtraList();
   rHist();
 }
-function captureHistMonth(){
-  const fr=['Jan','Fev','Mar','Avr','Mai','Juin','Juil','Aout','Sep','Oct','Nov','Dec'];
-  const el=document.getElementById('hist-cap-month');
-  const mName=(el&&el.value.trim())||(fr[new Date().getMonth()]+' '+new Date().getFullYear());
+/* Cœur de la capture — appelable manuellement ou automatiquement */
+function doCaptureMonth(mName, notify){
   const peeData=ls('mick_pee',PEE);
   const peeV=peeData.reduce((s,f)=>s+(f.val||0),0);
   const peeI=peeData.reduce((s,f)=>s+(f.inv||0),0);
@@ -1109,10 +1108,35 @@ function captureHistMonth(){
   const idx=extra.findIndex(h=>h.m===mName);
   if(idx>=0)extra[idx]=entry;else extra.push(entry);
   ss('mick_hist_extra',extra);
-  if(el)el.value='';
-  showM('Historique '+mName+' sauvegarde !','s');
+  if(notify)showM((notify==='auto'?'Snapshot auto ':'')+mName+' sauvegarde !','s');
   rHistExtraList();
   rHist();
+}
+/* Bouton manuel dans Gérer → Mensuel */
+function captureHistMonth(){
+  const fr=['Jan','Fev','Mar','Avr','Mai','Juin','Juil','Aout','Sep','Oct','Nov','Dec'];
+  const el=document.getElementById('hist-cap-month');
+  const mName=(el&&el.value.trim())||(fr[new Date().getMonth()]+' '+new Date().getFullYear());
+  if(el)el.value='';
+  doCaptureMonth(mName,true);
+}
+/* Auto-capture : appelé après chaque chargement des prix */
+function autoCapture(){
+  if(!ok)return;
+  const fr=['Jan','Fev','Mar','Avr','Mai','Juin','Juil','Aout','Sep','Oct','Nov','Dec'];
+  const now=new Date(),day=now.getDate(),month=now.getMonth(),year=now.getFullYear();
+  const curMonthName=fr[month]+' '+year;
+  const extra=ls('mick_hist_extra',[]);
+  const alreadyCaptured=extra.some(e=>e.m===curMonthName);
+  /* 28 du mois ou plus : snapshot mensuel automatique si pas encore fait */
+  if(day>=28&&!alreadyCaptured){
+    doCaptureMonth(curMonthName,'auto');
+    return;
+  }
+  /* 31 décembre : mise à jour du snapshot de fin d'année même si déjà capturé */
+  if(day===31&&month===11){
+    doCaptureMonth(curMonthName,'auto');
+  }
 }
 
 /* ===== RENDER ALL ===== */
