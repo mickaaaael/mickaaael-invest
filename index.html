@@ -314,6 +314,69 @@ a,button,input,select{transition:all .15s ease}
 .bench-row.bench-hdr{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-weight:700;padding-bottom:6px;border-bottom:1px solid var(--brd2)}
 @media(max-width:600px){.alloc-name{width:80px;font-size:11px}.alloc-pct{width:auto;font-size:10px}.bench-row{grid-template-columns:1fr 70px 70px;gap:6px}.bench-row .bench-hide{display:none}}
 
+/* === HEATMAP === */
+.heatmap{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.hm-cell{position:relative;border-radius:6px;padding:8px 10px;min-width:70px;cursor:default;transition:transform .2s,box-shadow .2s;overflow:hidden;border:1px solid rgba(255,255,255,.04)}
+.hm-cell:hover{transform:scale(1.04);box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:2}
+.hm-name{font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-pct{font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);margin-top:2px}
+.hm-val{font-size:9px;color:rgba(255,255,255,.85);margin-top:1px}
+
+/* === PROJECTION === */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.proj-input{padding:9px 12px;font-size:13px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;width:100%;text-align:right}
+.proj-result{background:linear-gradient(135deg,rgba(91,108,240,.1),rgba(240,194,127,.05));border:1px solid rgba(91,108,240,.2);border-radius:14px;padding:18px 22px;margin-top:10px;text-align:center}
+.proj-result-val{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0}
+.proj-result-sub{font-size:12px;color:var(--text2)}
+
+/* === SEARCH === */
+.search-wrap{position:relative;flex:1;max-width:280px;min-width:160px}
+.search-input{width:100%;padding:8px 14px 8px 36px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+.search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--brd2);border-radius:12px;max-height:300px;overflow-y:auto;z-index:1000;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.search-results.show{display:block}
+.search-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--brd);font-size:12px;transition:background .15s}
+.search-item:hover{background:var(--bg3)}
+.search-item:last-child{border-bottom:none}
+.search-item-src{font-size:9px;text-transform:uppercase;color:var(--text3);font-weight:700;letter-spacing:.05em}
+
+/* === SKELETON LOADERS === */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--r)}
+.skel-hero{height:160px;margin-bottom:1.5rem}
+.skel-mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:1.5rem}
+.skel-met{height:110px}
+.skel-ana{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:1.5rem}
+.skel-card{height:180px}
+
+/* === PRINT === */
+@media print{
+  body{background:#fff;color:#000}
+  .tabs-wrap,.pills,.btn-eye,.btn-refresh,.ticker-wrap,.bio-btn,.bio-label,.evo-filters,.search-wrap,.btn-print,.today-bar{display:none!important}
+  .pg{display:block!important;page-break-after:always}
+  .hero,.met,.ana-card,.card,.bilan-card,.tbl-card{box-shadow:none!important;border-color:#ddd!important;background:#fff!important;color:#000!important;break-inside:avoid}
+  .hero-val,.recap-val,.bilan-total,.met-stat{color:#000!important}
+  body.hide-amounts *{filter:none!important}
+}
+
+/* === STATS === */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat-cell{background:var(--bg3);border:1px solid var(--brd);border-radius:12px;padding:14px 16px;text-align:center}
+.stat-cell-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:700;margin-bottom:6px}
+.stat-cell-val{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.stat-cell-sub{font-size:10px;color:var(--text2);margin-top:2px}
+
+/* === COMPARE === */
+.cmp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:1rem}
+.cmp-select{padding:9px 12px;font-size:13px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;width:100%}
+
+/* === ANIM NUMBER === */
+@keyframes pulseUp{0%{color:var(--pos)}100%{color:inherit}}
+@keyframes pulseDown{0%{color:var(--neg)}100%{color:inherit}}
+.num-up{animation:pulseUp 1s ease}
+.num-down{animation:pulseDown 1s ease}
+
 /* === SPACING === */
 .g2{gap:16px}
 .hero{margin-bottom:2rem}
@@ -323,7 +386,7 @@ a,button,input,select{transition:all .15s ease}
 body.hide-amounts .hero-val,body.hide-amounts .mvl,body.hide-amounts .recap-val,
 body.hide-amounts .recap-item-val,body.hide-amounts .bilan-sec-val,body.hide-amounts .bilan-total,
 body.hide-amounts .bilan-stat-val,body.hide-amounts .hero-pnl,body.hide-amounts .mvl2,
-body.hide-amounts .met-stat,body.hide-amounts .today-val{filter:blur(10px);user-select:none;transition:filter .3s}
+body.hide-amounts .met-stat,body.hide-amounts .today-val,body.hide-amounts .ana-val,body.hide-amounts .stat-cell-val,body.hide-amounts .proj-result-val,body.hide-amounts .proj-result-sub,body.hide-amounts .hm-val,body.hide-amounts .alloc-pct,body.hide-amounts .bench-row span:not(:first-child){filter:blur(10px);user-select:none;transition:filter .3s}
 body.hide-amounts td:not(:first-child):not(:last-child),body.hide-amounts tfoot td:not(:first-child){filter:blur(8px);user-select:none}
 
 /* === EYE BUTTON === */
@@ -395,7 +458,13 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
   </div>
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
     <div style="display:flex;gap:7px;align-items:center">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="search-input" type="text" placeholder="Rechercher..." oninput="doSearch()" onfocus="doSearch()" onblur="setTimeout(()=>document.getElementById('search-results').classList.remove('show'),200)">
+        <div class="search-results" id="search-results"></div>
+      </div>
       <div class="pills" id="pills"><button class="btn-refresh" onclick="load()"><span class="sp"></span>Chargement</button></div>
+      <button class="btn-eye btn-print" onclick="window.print()" title="Imprimer / Exporter PDF" style="font-size:14px">🖨</button>
       <button class="btn-eye" onclick="toggleHide()" title="Masquer/afficher les montants" id="btn-eye">&#128065;</button>
     </div>
     <div class="upd" id="upd">Initialisation...</div>
@@ -410,27 +479,35 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
 <!-- TABS -->
 <div class="tabs-wrap" id="tabs-wrap">
   <div class="tabs" id="main-tabs">
-    <button class="tab active" onclick="showTab('ov')">🏠 Vue globale</button>
-    <button class="tab" onclick="showTab('pee')">🏢 PEE</button>
-    <button class="tab" onclick="showTab('tr')">📈 Trade Republic</button>
-    <button class="tab" onclick="showTab('pea')">🇫🇷 PEA</button>
-    <button class="tab" onclick="showTab('cry')">₿ Crypto</button>
-    <button class="tab" onclick="showTab('la')">🏦 Livret A</button>
-    <button class="tab" onclick="showTab('hist')">📊 Historique</button>
-    <button class="tab" onclick="showTab('mgr')">⚙️ Gerer</button>
+    <button class="tab active" onclick="showTab('ov')">Vue globale</button>
+    <button class="tab" onclick="showTab('pee')">PEE</button>
+    <button class="tab" onclick="showTab('tr')">Trade Republic</button>
+    <button class="tab" onclick="showTab('pea')">PEA</button>
+    <button class="tab" onclick="showTab('cry')">Crypto</button>
+    <button class="tab" onclick="showTab('la')">Livret A</button>
+    <button class="tab" onclick="showTab('hist')">Historique</button>
+    <button class="tab" onclick="showTab('mgr')">Gerer</button>
   </div>
 </div>
 
 <!-- ==================== VUE GLOBALE ==================== -->
 <div class="pg active" id="pg-ov">
-  <div id="ov-spin" style="padding:4rem;text-align:center;color:var(--text2)"><span class="sp"></span>Chargement des prix...</div>
+  <div id="ov-spin" style="padding:1.5rem 0">
+    <div class="skel skel-hero"></div>
+    <div class="skel-mets"><div class="skel skel-met"></div><div class="skel skel-met"></div><div class="skel skel-met"></div><div class="skel skel-met"></div><div class="skel skel-met"></div></div>
+    <div class="skel-ana"><div class="skel skel-card"></div><div class="skel skel-card"></div><div class="skel skel-card"></div><div class="skel skel-card"></div></div>
+    <div style="text-align:center;color:var(--text3);font-size:11px;margin-top:1rem"><span class="sp"></span>Chargement des prix...</div>
+  </div>
   <div id="ov-body" style="display:none">
     <div class="today-bar" id="today-bar" style="display:none"></div>
     <div class="hero" id="hero-ov"></div>
     <div class="mets" id="met-ov"></div>
     <div class="ov-analytics" id="ov-analytics"></div>
+    <div class="card" id="ana-heatmap-wrap" style="margin-bottom:1rem"></div>
     <div class="card" id="ana-alloc-wrap" style="margin-bottom:1rem"></div>
     <div class="card" id="ana-bench-wrap" style="margin-bottom:1rem"></div>
+    <div class="card" id="ana-proj-wrap" style="margin-bottom:1rem"></div>
+    <div class="card" id="ana-stats-wrap" style="margin-bottom:1rem"></div>
     <div class="g2">
       <div class="card"><div class="sl" style="margin-top:0">Repartition par poche</div><div class="cw" style="height:200px"><canvas id="c-po"></canvas></div><div class="leg" id="lg-po"></div></div>
       <div class="card"><div class="sl" style="margin-top:0">Performance par poche</div><div class="cw" style="height:200px"><canvas id="c-pf"></canvas></div></div>
@@ -549,6 +626,17 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <button class="ptb active" onclick="showHist('charts')">Graphiques</button>
     <button class="ptb" onclick="showHist('mensuel')">Bilan Mensuel</button>
     <button class="ptb" onclick="showHist('annuel')">Bilan Annuel</button>
+    <button class="ptb" onclick="showHist('cmp')">Comparer 2 mois</button>
+  </div>
+  <div id="hist-cmp" style="display:none">
+    <div class="sl" style="margin-top:0">Comparaison de periodes</div>
+    <div class="info">Selectionne 2 mois et compare les performances en detail.</div>
+    <div class="cmp-row">
+      <div><label style="font-size:11px;color:var(--text3);font-weight:600">Mois A (debut)</label><select class="cmp-select" id="cmp-a" onchange="renderCmp()"></select></div>
+      <div><label style="font-size:11px;color:var(--text3);font-weight:600">Mois B (fin)</label><select class="cmp-select" id="cmp-b" onchange="renderCmp()"></select></div>
+      <div></div>
+    </div>
+    <div id="cmp-result"></div>
   </div>
   <div id="hist-charts">
     <div class="chart-card"><div class="sl" style="margin-top:0">Evolution mensuelle</div><div class="cw"><canvas id="c-ml"></canvas></div></div>
@@ -833,6 +921,7 @@ function doLogin(){
       document.getElementById('main-app').style.display='';
       sessionStorage.setItem('mf_token',pwd);
       startLoad();
+      resetIdleTimer();
       /* Proposer biometrie si pas encore activee */
       setTimeout(()=>bioPromptShow(),1500);
     }else{
@@ -904,6 +993,7 @@ async function bioLogin(){
       document.getElementById('main-app').style.display='';
       sessionStorage.setItem('mf_token',tk);
       startLoad();
+      resetIdleTimer();
     }else{
       /* Token invalide — supprimer bio et forcer mot de passe */
       localStorage.removeItem('mf_bio_cred');
@@ -936,7 +1026,7 @@ function bioPromptShow(){
 (function(){
   const t=sessionStorage.getItem('mf_token');
   if(t){GS_TOKEN=t;document.querySelector('.login-btn').textContent='Connexion...';
-    gsLoadAll().then(ok=>{if(ok){document.getElementById('login-overlay').style.display='none';document.getElementById('main-app').style.display='';startLoad();}else{document.querySelector('.login-btn').textContent='Se connecter';sessionStorage.removeItem('mf_token');}});}
+    gsLoadAll().then(ok=>{if(ok){document.getElementById('login-overlay').style.display='none';document.getElementById('main-app').style.display='';startLoad();resetIdleTimer();}else{document.querySelector('.login-btn').textContent='Se connecter';sessionStorage.removeItem('mf_token');}});}
   else{bioInitLogin();}
 })();
 
@@ -1388,9 +1478,222 @@ function yhChg(raw){
 
 function rAnalytics(sd,gtv,gti,ytdStart){
   rAnaTopRow(sd,gtv);
+  rAnaHeatmap();
   rAnaAlloc(sd,gtv);
   rAnaBench(gtv,gti,ytdStart);
+  rAnaProj(gtv);
+  rAnaStats();
 }
+
+/* ===== HEATMAP ===== */
+function rAnaHeatmap(){
+  const pos=getAllPositions();
+  if(!pos.length){document.getElementById('ana-heatmap-wrap').innerHTML='';return;}
+  const totVal=pos.reduce((s,p)=>s+p.val,0);
+  const sorted=pos.slice().sort((a,b)=>b.val-a.val);
+  /* Couleur basée sur la perf cumulée (val vs inv) */
+  const colorFor=(p)=>{
+    const pct=p.inv>0?((p.val-p.inv)/p.inv)*100:0;
+    if(p.inv===0)return '#374151';
+    if(pct>=10)return '#15803d';
+    if(pct>=3)return '#22c55e';
+    if(pct>=0)return '#16a34a';
+    if(pct>=-3)return '#dc2626';
+    if(pct>=-10)return '#b91c1c';
+    return '#7f1d1d';
+  };
+  const cells=sorted.map(p=>{
+    const pct=p.inv>0?((p.val-p.inv)/p.inv)*100:0;
+    const sizeRatio=totVal>0?p.val/totVal:0;
+    const w=Math.max(70,Math.min(220,sizeRatio*1200));
+    return `<div class="hm-cell" style="background:${colorFor(p)};flex:0 0 auto;width:${w}px" title="${p.name} — ${fe(p.val)} (${fp(pct)})">
+      <div class="hm-name">${p.name}</div>
+      <div class="hm-pct">${p.inv>0?fp(pct):'—'}</div>
+      <div class="hm-val">${fe(p.val)}</div>
+    </div>`;
+  }).join('');
+  const html=`<div class="sl" style="margin-top:0;display:flex;align-items:center;justify-content:space-between"><span>🔥 Heatmap des positions</span><span style="font-size:10px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0">Taille = poids · couleur = perf</span></div>
+    <div class="heatmap">${cells}</div>`;
+  document.getElementById('ana-heatmap-wrap').innerHTML=html;
+}
+
+/* ===== PROJECTION ===== */
+function getProjSettings(){return ls('mick_proj',{months:60,monthly:300,rate:5,goal:100000});}
+function rAnaProj(gtv){
+  const s=getProjSettings();
+  const monthlyRate=s.rate/100/12;
+  let val=gtv;
+  const path=[val];
+  for(let i=0;i<s.months;i++){val=val*(1+monthlyRate)+s.monthly;path.push(val);}
+  const finalVal=val;
+  const totalInvested=gtv+s.monthly*s.months;
+  const totalGains=finalVal-totalInvested;
+  const goalReached=s.goal>0?finalVal>=s.goal:false;
+  let monthsToGoal=null;
+  if(s.goal>0){
+    let v=gtv,m=0;
+    while(v<s.goal&&m<600){v=v*(1+monthlyRate)+s.monthly;m++;}
+    if(v>=s.goal)monthsToGoal=m;
+  }
+  const yLabel=Math.floor(s.months/12);
+  const mLabel=s.months%12;
+  const dur=yLabel?yLabel+' an'+(yLabel>1?'s':'')+(mLabel?' '+mLabel+' mois':''):s.months+' mois';
+  const html=`<div class="sl" style="margin-top:0">📅 Projection patrimoine</div>
+    <div class="proj-grid">
+      <div><label style="font-size:10px;color:var(--text3);font-weight:600">Apport mensuel (€)</label><input class="proj-input" id="proj-monthly" type="number" step="50" value="${s.monthly}" oninput="saveProj()"></div>
+      <div><label style="font-size:10px;color:var(--text3);font-weight:600">Rendement annuel (%)</label><input class="proj-input" id="proj-rate" type="number" step="0.5" value="${s.rate}" oninput="saveProj()"></div>
+      <div><label style="font-size:10px;color:var(--text3);font-weight:600">Duree (mois)</label><input class="proj-input" id="proj-months" type="number" step="12" value="${s.months}" oninput="saveProj()"></div>
+      <div><label style="font-size:10px;color:var(--text3);font-weight:600">Objectif (€)</label><input class="proj-input" id="proj-goal" type="number" step="10000" value="${s.goal}" oninput="saveProj()"></div>
+    </div>
+    <div class="proj-result">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:700">Capital estime dans ${dur}</div>
+      <div class="proj-result-val" style="color:var(--accent2)">${fe(finalVal)}</div>
+      <div class="proj-result-sub">Investi : ${fe(totalInvested)} · Gains : <span class="${cl(totalGains)}">${(totalGains>=0?'+':'')+fe(totalGains)}</span></div>
+      ${s.goal>0?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(91,108,240,.15)">'+(goalReached?`<span style="color:var(--pos);font-weight:700">✓ Objectif ${fe(s.goal)} atteint`+(monthsToGoal?` en ${Math.floor(monthsToGoal/12)} an(s) ${monthsToGoal%12} mois`:'')+'</span>':`<span style="color:var(--gold);font-weight:700">⏳ Objectif ${fe(s.goal)} `+(monthsToGoal?`atteint en ${Math.floor(monthsToGoal/12)} an(s) ${monthsToGoal%12} mois`:'non atteint dans cette duree')+'</span>')+'</div>':''}
+    </div>`;
+  document.getElementById('ana-proj-wrap').innerHTML=html;
+}
+function saveProj(){
+  const s={
+    monthly:parseFloat(document.getElementById('proj-monthly').value)||0,
+    rate:parseFloat(document.getElementById('proj-rate').value)||0,
+    months:parseInt(document.getElementById('proj-months').value)||60,
+    goal:parseFloat(document.getElementById('proj-goal').value)||0
+  };
+  ss('mick_proj',s);
+  /* Recalcule sans tout regenerer */
+  const gtv=cSec('pee').tv+cSec('tr').tv+cSec('pea').tv+cSec('crypto').tv+cSec('la').tv;
+  rAnaProj(gtv);
+}
+
+/* ===== STATS AVANCEES ===== */
+function rAnaStats(){
+  const _h=hAll();
+  if(_h.length<3){document.getElementById('ana-stats-wrap').innerHTML='';return;}
+  /* Rendements mensuels en % */
+  const returns=[];
+  for(let i=1;i<_h.length;i++){
+    const p=_h[i-1],c=_h[i];
+    if(p.val>0){
+      const apport=c.inv-p.inv;
+      const variation=(c.val-apport)-p.val;
+      returns.push(p.val>0?(variation/p.val)*100:0);
+    }
+  }
+  /* Volatilité (écart-type des rendements) */
+  const mean=returns.reduce((s,v)=>s+v,0)/returns.length;
+  const variance=returns.reduce((s,v)=>s+Math.pow(v-mean,2),0)/returns.length;
+  const vol=Math.sqrt(variance);
+  const volAnn=vol*Math.sqrt(12);
+  /* Sharpe ratio (taux sans risque ~3%) */
+  const meanAnn=mean*12;
+  const sharpe=volAnn>0?(meanAnn-3)/volAnn:0;
+  /* Max drawdown */
+  let peak=_h[0].val,maxDD=0,maxDDStart=null,maxDDEnd=null,curStart=null;
+  _h.forEach(m=>{
+    if(m.val>peak){peak=m.val;curStart=m.m;}
+    const dd=peak>0?((m.val-peak)/peak)*100:0;
+    if(dd<maxDD){maxDD=dd;maxDDStart=curStart;maxDDEnd=m.m;}
+  });
+  /* Best/worst month */
+  let bestM=null,worstM=null;
+  for(let i=1;i<_h.length;i++){
+    const dv=_h[i].val-_h[i-1].val;
+    if(!bestM||dv>bestM.v)bestM={m:_h[i].m,v:dv};
+    if(!worstM||dv<worstM.v)worstM={m:_h[i].m,v:dv};
+  }
+  /* TWR (Time-Weighted Return) */
+  let twr=1;
+  returns.forEach(r=>{twr*=(1+r/100);});
+  const twrPct=(twr-1)*100;
+  const html=`<div class="sl" style="margin-top:0">📐 Statistiques avancees</div>
+    <div class="stat-grid">
+      <div class="stat-cell"><div class="stat-cell-label">Volatilite annualisee</div><div class="stat-cell-val">${volAnn.toFixed(2)}%</div><div class="stat-cell-sub">${volAnn<10?'Faible':volAnn<20?'Moderee':'Elevee'}</div></div>
+      <div class="stat-cell"><div class="stat-cell-label">Sharpe ratio</div><div class="stat-cell-val ${sharpe>=1?'pos':sharpe<0?'neg':''}">${sharpe.toFixed(2)}</div><div class="stat-cell-sub">${sharpe>=2?'Excellent':sharpe>=1?'Bon':sharpe>=0?'Moyen':'Mauvais'}</div></div>
+      <div class="stat-cell"><div class="stat-cell-label">Max drawdown</div><div class="stat-cell-val neg">${maxDD.toFixed(2)}%</div>${maxDDStart?`<div class="stat-cell-sub">${maxDDStart} → ${maxDDEnd}</div>`:''}</div>
+      <div class="stat-cell"><div class="stat-cell-label">TWR cumule</div><div class="stat-cell-val ${cl(twrPct)}">${(twrPct>=0?'+':'')+twrPct.toFixed(2)}%</div><div class="stat-cell-sub">Hors apports</div></div>
+      ${bestM?`<div class="stat-cell"><div class="stat-cell-label">Meilleur mois</div><div class="stat-cell-val pos">+${fe(bestM.v)}</div><div class="stat-cell-sub">${bestM.m}</div></div>`:''}
+      ${worstM?`<div class="stat-cell"><div class="stat-cell-label">Pire mois</div><div class="stat-cell-val neg">${fe(worstM.v)}</div><div class="stat-cell-sub">${worstM.m}</div></div>`:''}
+    </div>`;
+  document.getElementById('ana-stats-wrap').innerHTML=html;
+}
+
+/* ===== COMPARAISON DE PERIODES ===== */
+function initCmp(){
+  const _h=hAll();
+  if(_h.length<2){document.getElementById('cmp-result').innerHTML='<div class="info">Pas assez de donnees pour comparer.</div>';return;}
+  const opts=_h.map((m,i)=>`<option value="${i}">${m.m}</option>`).join('');
+  const a=document.getElementById('cmp-a'),b=document.getElementById('cmp-b');
+  a.innerHTML=opts;b.innerHTML=opts;
+  a.value=Math.max(0,_h.length-13);
+  b.value=_h.length-1;
+  renderCmp();
+}
+function renderCmp(){
+  const _h=hAll();
+  const ai=parseInt(document.getElementById('cmp-a').value);
+  const bi=parseInt(document.getElementById('cmp-b').value);
+  if(isNaN(ai)||isNaN(bi)||ai>=bi){document.getElementById('cmp-result').innerHTML='<div class="info">Le mois A doit etre avant le mois B.</div>';return;}
+  const A=_h[ai],B=_h[bi];
+  const dv=B.val-A.val,di=B.inv-A.inv,pv=dv-di;
+  const pct=A.val>0?(dv/A.val)*100:0;
+  const pvPct=A.val>0?(pv/A.val)*100:0;
+  const sec=(k,name,color)=>{
+    if(!A[k]||!B[k])return '';
+    const dvs=(B[k].v||0)-(A[k].v||0),dis=(B[k].i||0)-(A[k].i||0),pvs=dvs-dis;
+    return `<div style="background:var(--bg3);border:1px solid var(--brd);border-radius:12px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:8px;color:${color}">${name}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--text2)">Valeur</span><span class="${cl(dvs)}" style="font-weight:700">${(dvs>=0?'+':'')+fe(dvs)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--text2)">Apports</span><span style="font-weight:700">${(dis>=0?'+':'')+fe(dis)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;padding-top:6px;border-top:1px solid var(--brd);margin-top:6px"><span style="color:var(--gold)">+/-V</span><span class="${cl(pvs)}" style="font-weight:700;color:var(--gold)">${(pvs>=0?'+':'')+fe(pvs)}</span></div>
+    </div>`;
+  };
+  const html=`<div class="bilan-card">
+    <div class="bilan-hdr"><div class="bilan-title">${A.m} → ${B.m}</div><div><div class="bilan-total ${cl(dv)}">${(dv>=0?'+':'')+fe(dv)}</div><div style="text-align:right;font-size:11px" class="${cl(pct)}">${fp(pct)}</div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px">
+      ${sec('pee','PEE','#5b6cf0')}${sec('tr','Trade Republic','#c084fc')}${sec('pea','PEA','#34d399')}${sec('cry','Crypto','#f0c27f')}${sec('la','Livret A','#60a5fa')}
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(91,108,240,.08),rgba(240,194,127,.04));border:1px solid rgba(91,108,240,.15);border-radius:14px;padding:16px 20px;text-align:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:6px">+/- Value de la periode (hors apports)</div>
+      <div class="${cl(pv)}" style="font-size:26px;font-weight:800;letter-spacing:-.02em">${(pv>=0?'+':'')+fe(pv)}</div>
+      <div class="${cl(pvPct)}" style="font-size:13px;font-weight:600;margin-top:2px">${fp(pvPct)}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px">
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Variation totale</div><div style="font-size:14px;font-weight:700" class="${cl(dv)}">${(dv>=0?'+':'')+fe(dv)}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Apports</div><div style="font-size:14px;font-weight:700">${(di>=0?'+':'')+fe(di)}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Performance pure</div><div style="font-size:14px;font-weight:700" class="${cl(pv)}">${(pv>=0?'+':'')+fe(pv)}</div></div>
+    </div>
+  </div>`;
+  document.getElementById('cmp-result').innerHTML=html;
+}
+
+/* ===== RECHERCHE GLOBALE ===== */
+function doSearch(){
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  const res=document.getElementById('search-results');
+  if(!q){res.classList.remove('show');return;}
+  const pos=getAllPositions();
+  const matches=pos.filter(p=>p.name.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){res.innerHTML='<div class="search-item" style="color:var(--text3);cursor:default">Aucun resultat</div>';res.classList.add('show');return;}
+  res.innerHTML=matches.map(p=>{
+    const tabMap={PEE:'pee',TR:'tr',PEA:'pea',Crypto:'cry'};
+    const t=tabMap[p.src]||'ov';
+    const pnl=p.val-p.inv,pct=p.inv>0?(pnl/p.inv)*100:0;
+    return `<div class="search-item" onclick="showTab('${t}');document.getElementById('search-input').value='';document.getElementById('search-results').classList.remove('show')"><div><div style="font-weight:600">${p.name}</div><div class="search-item-src">${p.src}</div></div><div style="text-align:right"><div style="font-weight:700">${fe(p.val)}</div>${p.inv>0?`<div class="${cl(pnl)}" style="font-size:10px">${fp(pct)}</div>`:''}</div></div>`;
+  }).join('');
+  res.classList.add('show');
+}
+
+/* ===== AUTO-LOGOUT ===== */
+let _idleTimer=null;
+function resetIdleTimer(){
+  if(_idleTimer)clearTimeout(_idleTimer);
+  _idleTimer=setTimeout(()=>{
+    sessionStorage.removeItem('mf_token');
+    showM('Deconnexion automatique apres 30 min d\'inactivite','i');
+    setTimeout(()=>location.reload(),1500);
+  },30*60*1000);
+}
+['mousedown','keydown','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,resetIdleTimer,{passive:true}));
 
 function rAnaTopRow(sd,gtv){
   const pos=getAllPositions();
@@ -1735,14 +2038,15 @@ function rLA(){
 let cHist='charts';
 function showHist(s){
   cHist=s;
-  ['charts','mensuel','annuel'].forEach(id=>document.getElementById('hist-'+id).style.display=id===s?'':'none');
+  ['charts','mensuel','annuel','cmp'].forEach(id=>document.getElementById('hist-'+id).style.display=id===s?'':'none');
   document.querySelectorAll('#hist-pt .ptb').forEach(el=>{
-    const map={charts:'Graphiques',mensuel:'Bilan Mensuel',annuel:'Bilan Annuel'};
+    const map={charts:'Graphiques',mensuel:'Bilan Mensuel',annuel:'Bilan Annuel',cmp:'Comparer 2 mois'};
     el.classList.toggle('active',el.textContent===map[s]);
   });
   if(s==='charts')rHist();
   else if(s==='mensuel')rHistMensuel();
-  else rHistAnnuel();
+  else if(s==='annuel')rHistAnnuel();
+  else if(s==='cmp')initCmp();
 }
 
 function bilanSecHTML(sec,label,cls,pvPeriod,pvLabel){
