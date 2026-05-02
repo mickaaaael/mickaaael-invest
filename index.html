@@ -194,8 +194,9 @@ tfoot td{font-weight:700;border-top:1px solid var(--brd2);border-bottom:none!imp
 .bilan-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--brd)}
 .bilan-title{font-size:16px;font-weight:700}
 .bilan-total{font-size:20px;font-weight:800;letter-spacing:-.02em}
-.bilan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
-@media(max-width:680px){.bilan-grid{grid-template-columns:repeat(2,1fr)}}
+.bilan-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:900px){.bilan-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.bilan-grid{grid-template-columns:repeat(2,1fr)}}
 .bilan-sec{background:var(--bg3);border:1px solid var(--brd);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
 .bilan-sec::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
 .bilan-sec.sec-pee::before{background:linear-gradient(90deg,#5b6cf0,#8b7cf6)}
@@ -1103,7 +1104,8 @@ function doCaptureMonth(mName, notify){
     pee:{v:+peeV.toFixed(2),i:+peeI.toFixed(2)},
     tr:{v:+trSec.tv.toFixed(2),i:+trSec.ti.toFixed(2)},
     pea:{v:+peaSec.tv.toFixed(2),i:+peaSec.ti.toFixed(2)},
-    cry:{v:+crySec.tv.toFixed(2),i:+crySec.ti.toFixed(2)}};
+    cry:{v:+crySec.tv.toFixed(2),i:+crySec.ti.toFixed(2)},
+    la:{v:+laVal.toFixed(2),i:+laVal.toFixed(2)}};
   const extra=ls('mick_hist_extra',[]);
   const idx=extra.findIndex(h=>h.m===mName);
   if(idx>=0)extra[idx]=entry;else extra.push(entry);
@@ -1532,9 +1534,10 @@ function bilanSecHTML(sec,label,cls,pvPeriod,pvLabel){
 }
 
 function secPV(cur,prev){
-  if(!prev)return{pee:0,tr:0,pea:0,cry:0};
+  if(!prev)return{pee:0,tr:0,pea:0,cry:0,la:0};
   const pv=(c,p)=>(c.v-c.i)-(p.v-p.i);
-  return{pee:pv(cur.pee,prev.pee),tr:pv(cur.tr,prev.tr),pea:pv(cur.pea,prev.pea),cry:pv(cur.cry,prev.cry)};
+  const laDiff=cur.la&&prev.la?cur.la.v-prev.la.v:0;
+  return{pee:pv(cur.pee,prev.pee),tr:pv(cur.tr,prev.tr),pea:pv(cur.pea,prev.pea),cry:pv(cur.cry,prev.cry),la:laDiff};
 }
 function rHistMensuel(){
   const _h=hAll();
@@ -1557,6 +1560,7 @@ function rHistMensuel(){
         ${bilanSecHTML(m.tr,'Trade Republic','sec-tr',prev?sp.tr:undefined,'+/-V mois')}
         ${bilanSecHTML(m.pea,'PEA','sec-pea',prev?sp.pea:undefined,'+/-V mois')}
         ${bilanSecHTML(m.cry,'Crypto','sec-cry',prev?sp.cry:undefined,'+/-V mois')}
+        ${m.la&&m.la.v>0?bilanSecHTML(m.la,'Livret A','sec-la',prev?sp.la:undefined,'+/-V mois'):''}
       </div>
       <div class="bilan-stats">
         <div><div class="bilan-stat-label">Investi total</div><div class="bilan-stat-val">${fe(m.inv)}</div></div>
@@ -1612,7 +1616,9 @@ function rHistAnnuel(){
     const secTr={v:last.tr.v,i:last.tr.i};
     const secPea={v:last.pea.v,i:last.pea.i};
     const secCry={v:last.cry.v,i:last.cry.i};
+    const secLa=last.la?{v:last.la.v,i:last.la.v}:{v:0,i:0};
     const pvPee=pvSec('pee'),pvTr=pvSec('tr'),pvPea=pvSec('pea'),pvCry=pvSec('cry');
+    const pvLa=last.la&&startM.la?last.la.v-startM.la.v:0;
 
     h+=`<div class="bilan-card" style="margin-bottom:20px">
       <div class="bilan-hdr">
@@ -1627,6 +1633,7 @@ function rHistAnnuel(){
         ${bilanSecHTML(secTr,'Trade Republic','sec-tr',pvTr,'+/-V annee')}
         ${bilanSecHTML(secPea,'PEA','sec-pea',pvPea,'+/-V annee')}
         ${bilanSecHTML(secCry,'Crypto','sec-cry',pvCry,'+/-V annee')}
+        ${secLa.v>0?bilanSecHTML(secLa,'Livret A','sec-la',pvLa,'+/-V annee'):''}
       </div>
       <div style="background:linear-gradient(135deg,rgba(91,108,240,.08),rgba(240,194,127,.04));border:1px solid rgba(91,108,240,.15);border-radius:14px;padding:16px 20px;margin-bottom:14px;text-align:center">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:6px">+/- Value de l'annee</div>
