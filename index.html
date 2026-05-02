@@ -280,6 +280,10 @@ a,button,input,select{transition:all .15s ease}
 .bio-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--brd2);border-radius:16px;padding:18px 24px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:10000;display:none;text-align:center;max-width:340px;width:90%;animation:fadeIn .35s ease}
 .bio-toast p{font-size:13px;color:var(--text);margin-bottom:10px;font-weight:600}
 .bio-toast span{font-size:11px;color:var(--text3);display:block;margin-bottom:12px}
+.toast-fixed{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:13px 26px;border-radius:14px;font-size:13px;font-weight:600;z-index:20000;display:none;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,.5);animation:fadeIn .25s ease;pointer-events:none}
+.toast-fixed.toast-s{background:rgba(52,211,153,.18);color:#34d399;border:1px solid rgba(52,211,153,.35)}
+.toast-fixed.toast-i{background:rgba(91,108,240,.18);color:#8b7cf6;border:1px solid rgba(91,108,240,.3)}
+.toast-fixed.toast-e{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.3)}
 
 /* === SPACING === */
 .g2{gap:16px}
@@ -339,6 +343,9 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div class="bio-label" id="bio-label">Deverrouiller avec empreinte</div>
   </div>
 </div>
+
+<!-- TOAST FIXE (notifications) -->
+<div class="toast-fixed" id="toast-fixed"></div>
 
 <!-- BIO TOAST (prompt apres login) -->
 <div class="bio-toast" id="bio-toast">
@@ -544,6 +551,12 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div><button class="btnp" onclick="addTRBMonth()">Enregistrer</button></div>
     </div>
     <button class="btnp" onclick="saveMensuel()" style="margin-top:14px">Tout enregistrer</button>
+    <div class="sl" style="margin-top:1.8rem">Sauvegarder ce mois dans l'historique</div>
+    <div class="info">Capture les valeurs actuelles du portefeuille et les ajoute à l'historique. A faire en fin de mois.</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:10px">
+      <div><label style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Mois a enregistrer</label><input id="hist-cap-month" type="text" placeholder="Avr 2026" style="padding:9px 14px;font-size:13px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none;width:150px"></div>
+      <button class="btnp" onclick="captureHistMonth()">Ajouter a l'historique</button>
+    </div>
   </div>
   <div id="mgr-crypto" style="display:none">
     <div class="sl" style="margin-top:.5rem">Modifier une position</div>
@@ -1041,6 +1054,40 @@ function renderTicker(){
   document.getElementById('ticker-wrap').style.display='';
 }
 
+/* ===== HIST ETENDU (localStorage) ===== */
+function hAll(){
+  const extra=ls('mick_hist_extra',[]);
+  if(!extra.length)return HIST;
+  const MO=['Jan','Fev','Mar','Avr','Mai','Juin','Juil','Aout','Sep','Oct','Nov','Dec'];
+  const baseMonths=new Set(HIST.map(h=>h.m));
+  const merged=[...HIST,...extra.filter(e=>!baseMonths.has(e.m))];
+  return merged.sort((a,b)=>{const[am,ay]=a.m.split(' ');const[bm,by]=b.m.split(' ');return(+ay*12+MO.indexOf(am))-(+by*12+MO.indexOf(bm));});
+}
+function captureHistMonth(){
+  const fr=['Jan','Fev','Mar','Avr','Mai','Juin','Juil','Aout','Sep','Oct','Nov','Dec'];
+  const el=document.getElementById('hist-cap-month');
+  const mName=(el&&el.value.trim())||(fr[new Date().getMonth()]+' '+new Date().getFullYear());
+  const peeData=ls('mick_pee',PEE);
+  const peeV=peeData.reduce((s,f)=>s+(f.val||0),0);
+  const peeI=peeData.reduce((s,f)=>s+(f.inv||0),0);
+  const trSec=cSec('tr'),peaSec=cSec('pea'),crySec=cSec('crypto');
+  const laVal=ls('mick_la',LA_D).val||0;
+  const gtv=+(peeV+trSec.tv+peaSec.tv+crySec.tv+laVal).toFixed(2);
+  const gti=+(peeI+trSec.ti+peaSec.ti+crySec.ti+laVal).toFixed(2);
+  const entry={m:mName,inv:gti,val:gtv,pnl:+(gtv-gti).toFixed(2),
+    pee:{v:+peeV.toFixed(2),i:+peeI.toFixed(2)},
+    tr:{v:+trSec.tv.toFixed(2),i:+trSec.ti.toFixed(2)},
+    pea:{v:+peaSec.tv.toFixed(2),i:+peaSec.ti.toFixed(2)},
+    cry:{v:+crySec.tv.toFixed(2),i:+crySec.ti.toFixed(2)}};
+  const extra=ls('mick_hist_extra',[]);
+  const idx=extra.findIndex(h=>h.m===mName);
+  if(idx>=0)extra[idx]=entry;else extra.push(entry);
+  ss('mick_hist_extra',extra);
+  if(el)el.value='';
+  showM('Historique '+mName+' sauvegarde !','s');
+  rHist();
+}
+
 /* ===== RENDER ALL ===== */
 function rAll(){rOv();rPEE();rTR();rPEA();rCry();rLA();rHist();rMgr();}
 
@@ -1068,7 +1115,7 @@ function buildRecap(id,label,tv,ti,histKey){
   let ytdHTML='';
   if(histKey&&typeof HIST!=='undefined'){
     const curYear=new Date().getFullYear();
-    const ytdStart=HIST.slice().reverse().find(h=>h.m&&h.m.includes(String(curYear-1)));
+    const ytdStart=hAll().slice().reverse().find(h=>h.m&&h.m.includes(String(curYear-1)));
     const ys=ytdStart&&ytdStart[histKey]?ytdStart[histKey]:null;
     if(ys){
       const ytdPV=(tv-ti)-(ys.v-ys.i);
@@ -1111,7 +1158,7 @@ function rOv(){
   const gp=gtv-gti,gpct=gti>0?(gp/gti)*100:0;
   /* YTD : point de départ = fin Dec 2025 */
   const curYear=new Date().getFullYear();
-  const ytdStart=HIST.slice().reverse().find(h=>h.m.includes(String(curYear-1)));
+  const ytdStart=hAll().slice().reverse().find(h=>h.m.includes(String(curYear-1)));
   const ytdValStart=ytdStart?ytdStart.val:gtv;
   const ytdInvStart=ytdStart?ytdStart.inv:gti;
   const ytdVariation=gtv-ytdValStart;
@@ -1182,20 +1229,21 @@ function setEvoFilter(k){
   buildEvoChart();
 }
 function buildEvoChart(){
+  const _h=hAll();
   const histMap={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
   let valData,invData;
   if(evoFilter==='all'){
-    valData=HIST.map(m=>m.val);invData=HIST.map(m=>m.inv);
+    valData=_h.map(m=>m.val);invData=_h.map(m=>m.inv);
   }else if(evoFilter==='la'){
     const laVal=ls('mick_la',LA_D).val;
-    valData=HIST.map(()=>laVal);invData=HIST.map(()=>laVal);
+    valData=_h.map(()=>laVal);invData=_h.map(()=>laVal);
   }else{
     const hk=histMap[evoFilter];
-    valData=HIST.map(m=>m[hk]?m[hk].v:0);invData=HIST.map(m=>m[hk]?m[hk].i:0);
+    valData=_h.map(m=>m[hk]?m[hk].v:0);invData=_h.map(m=>m[hk]?m[hk].i:0);
   }
   const color=({all:'#5b6cf0',pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'})[evoFilter];
   if(CH.ho)CH.ho.destroy();
-  CH.ho=new Chart(document.getElementById('c-hi'),{type:'line',data:{labels:HIST.map(m=>m.m),datasets:[{data:valData,borderColor:color,backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,color+'26');g.addColorStop(1,color+'00');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:invData,borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
+  CH.ho=new Chart(document.getElementById('c-hi'),{type:'line',data:{labels:_h.map(m=>m.m),datasets:[{data:valData,borderColor:color,backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,color+'26');g.addColorStop(1,color+'00');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:invData,borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
 }
 
 /* ===== SECTION EVO CHART ===== */
@@ -1209,26 +1257,27 @@ function buildSectionEvoChart(filter,canvasId){
   if(!canvas)return;
   const histMap={pee:'pee',tr:'tr',pea:'pea',crypto:'cry'};
   let valData,invData;
-  if(filter==='la'){const laVal=ls('mick_la',LA_D).val;valData=HIST.map(()=>laVal);invData=HIST.map(()=>laVal);}
+  const _h=hAll();
+  if(filter==='la'){const laVal=ls('mick_la',LA_D).val;valData=_h.map(()=>laVal);invData=_h.map(()=>laVal);}
   else if(filter==='crypto'){
     const plat=cCryEvo||'all';
     const totV=CRYPT_PLAT.all?CRYPT_PLAT.all.v:0;
     const totI=CRYPT_PLAT.all?CRYPT_PLAT.all.i:0;
     if(plat==='all'||!totV){
-      valData=HIST.map(m=>m.cry?m.cry.v:0);invData=HIST.map(m=>m.cry?m.cry.i:0);
+      valData=_h.map(m=>m.cry?m.cry.v:0);invData=_h.map(m=>m.cry?m.cry.i:0);
     }else{
       const ratV=totV>0?(CRYPT_PLAT[plat]?CRYPT_PLAT[plat].v/totV:0):0;
       const ratI=totI>0?(CRYPT_PLAT[plat]?CRYPT_PLAT[plat].i/totI:0):0;
-      valData=HIST.map(m=>m.cry?+((m.cry.v*ratV)).toFixed(2):0);
-      invData=HIST.map(m=>m.cry?+((m.cry.i*ratI)).toFixed(2):0);
+      valData=_h.map(m=>m.cry?+((m.cry.v*ratV)).toFixed(2):0);
+      invData=_h.map(m=>m.cry?+((m.cry.i*ratI)).toFixed(2):0);
     }
   }
-  else{const hk=histMap[filter];valData=HIST.map(m=>m[hk]?m[hk].v:0);invData=HIST.map(m=>m[hk]?m[hk].i:0);}
+  else{const hk=histMap[filter];valData=_h.map(m=>m[hk]?m[hk].v:0);invData=_h.map(m=>m[hk]?m[hk].i:0);}
   const platColors={binance:'#f3ba2f',kraken:'#b088f9',coinbase:'#5b8def',ledger:'#34d399'};
   const color=filter==='crypto'&&cCryEvo!=='all'?platColors[cCryEvo]:({pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa'})[filter]||'#5b6cf0';
   const ck='sec_'+filter;
   if(CH[ck])CH[ck].destroy();
-  CH[ck]=new Chart(canvas,{type:'line',data:{labels:HIST.map(m=>m.m),datasets:[{data:valData,borderColor:color,backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,color+'26');g.addColorStop(1,color+'00');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:invData,borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
+  CH[ck]=new Chart(canvas,{type:'line',data:{labels:_h.map(m=>m.m),datasets:[{data:valData,borderColor:color,backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,color+'26');g.addColorStop(1,color+'00');return g;},fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2,borderWidth:2.5},{data:invData,borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TT,mode:'index',intersect:false}},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' €'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
 }
 /* ===== PEE ===== */
 function rPEE(){
@@ -1437,9 +1486,10 @@ function secPV(cur,prev){
   return{pee:pv(cur.pee,prev.pee),tr:pv(cur.tr,prev.tr),pea:pv(cur.pea,prev.pea),cry:pv(cur.cry,prev.cry)};
 }
 function rHistMensuel(){
+  const _h=hAll();
   let h='';
-  [...HIST].reverse().forEach((m,idx)=>{
-    const prev=HIST[HIST.length-2-idx];
+  [..._h].reverse().forEach((m,idx)=>{
+    const prev=_h[_h.length-2-idx];
     const dv=prev?m.val-prev.val:0;
     const dinv=prev?m.inv-prev.inv:0;
     const pct=m.inv>0?(m.pnl/m.inv)*100:0;
@@ -1470,8 +1520,9 @@ function rHistMensuel(){
 }
 
 function rHistAnnuel(){
+  const _h=hAll();
   const years={};
-  HIST.forEach((m,i)=>{
+  _h.forEach((m,i)=>{
     const y=m.m.split(' ')[1];
     if(!years[y])years[y]={months:[],year:y};
     years[y].months.push({...m,idx:i});
@@ -1482,7 +1533,7 @@ function rHistAnnuel(){
     const last=yr.months[yr.months.length-1];
     const first=yr.months[0];
     const prevIdx=first.idx>0?first.idx-1:null;
-    const prevM=prevIdx!==null?HIST[prevIdx]:null;
+    const prevM=prevIdx!==null?_h[prevIdx]:null;
     const startVal=prevM?prevM.val:first.val;
     const startInv=prevM?prevM.inv:first.inv;
     const endVal=last.val;
@@ -1552,12 +1603,13 @@ function rHistAnnuel(){
 }
 
 function rHist(){
+  const _h=hAll();
   if(CH.ml)CH.ml.destroy();
-  CH.ml=new Chart(document.getElementById('c-ml'),{type:'line',data:{labels:HIST.map(m=>m.m),datasets:[{data:HIST.map(m=>m.val),borderColor:'#5b6cf0',backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,'rgba(91,108,240,.18)');g.addColorStop(1,'rgba(91,108,240,0)');return g;},fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#5b6cf0',pointBorderColor:'#060611',pointBorderWidth:2,borderWidth:2.5,pointHoverRadius:6},{data:HIST.map(m=>m.inv),borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TT},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
+  CH.ml=new Chart(document.getElementById('c-ml'),{type:'line',data:{labels:_h.map(m=>m.m),datasets:[{data:_h.map(m=>m.val),borderColor:'#5b6cf0',backgroundColor:function(ctx){const c=ctx.chart.ctx,g=c.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,'rgba(91,108,240,.18)');g.addColorStop(1,'rgba(91,108,240,0)');return g;},fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#5b6cf0',pointBorderColor:'#060611',pointBorderWidth:2,borderWidth:2.5,pointHoverRadius:6},{data:_h.map(m=>m.inv),borderColor:'#555770',borderDash:[5,5],tension:.4,pointRadius:0,borderWidth:1.5,backgroundColor:'transparent'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TT},scales:{y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}},x:{grid:{display:false}}},interaction:{mode:'index',intersect:false}}});
   if(CH.mb)CH.mb.destroy();
-  CH.mb=new Chart(document.getElementById('c-mb'),{type:'bar',data:{labels:HIST.map(m=>m.m),datasets:[{data:HIST.map(m=>+m.pnl.toFixed(0)),backgroundColor:HIST.map(m=>m.pnl>=0?'rgba(52,211,153,.6)':'rgba(248,113,113,.6)'),hoverBackgroundColor:HIST.map(m=>m.pnl>=0?'rgba(52,211,153,.9)':'rgba(248,113,113,.9)'),borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TT},scales:{x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:45}},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>(v>=0?'+':'')+v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}}}}});
+  CH.mb=new Chart(document.getElementById('c-mb'),{type:'bar',data:{labels:_h.map(m=>m.m),datasets:[{data:_h.map(m=>+m.pnl.toFixed(0)),backgroundColor:_h.map(m=>m.pnl>=0?'rgba(52,211,153,.6)':'rgba(248,113,113,.6)'),hoverBackgroundColor:_h.map(m=>m.pnl>=0?'rgba(52,211,153,.9)':'rgba(248,113,113,.9)'),borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:TT},scales:{x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:45}},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{callback:v=>(v>=0?'+':'')+v.toLocaleString('fr-FR',{maximumFractionDigits:0})+' \u20ac'}}}}});
   let h='';
-  [...HIST].reverse().forEach((m,i)=>{const prev=HIST[HIST.length-2-i],dv=prev?m.val-prev.val:0;h+=`<div class="mcd"><div class="mhd"><span style="font-weight:700;font-size:14px">${m.m}</span><span class="${cl(m.pnl)}" style="font-size:14px;font-weight:700">${m.pnl>=0?'+':''}${fe(m.pnl)}</span></div><div class="mgd"><div><div class="mlb2">Patrimoine</div><div class="mvl2">${fe(m.val)}</div></div><div><div class="mlb2">Investi</div><div class="mvl2">${fe(m.inv)}</div></div><div><div class="mlb2">P&L</div><div class="mvl2 ${cl(m.pnl)}">${m.pnl>=0?'+':''}${fe(m.pnl)}</div></div><div><div class="mlb2">Variation</div><div class="mvl2 ${cl(dv)}">${dv>=0?'+':''}${fe(dv)}</div></div></div></div>`;});
+  [..._h].reverse().forEach((m,i)=>{const prev=_h[_h.length-2-i],dv=prev?m.val-prev.val:0;h+=`<div class="mcd"><div class="mhd"><span style="font-weight:700;font-size:14px">${m.m}</span><span class="${cl(m.pnl)}" style="font-size:14px;font-weight:700">${m.pnl>=0?'+':''}${fe(m.pnl)}</span></div><div class="mgd"><div><div class="mlb2">Patrimoine</div><div class="mvl2">${fe(m.val)}</div></div><div><div class="mlb2">Investi</div><div class="mvl2">${fe(m.inv)}</div></div><div><div class="mlb2">P&L</div><div class="mvl2 ${cl(m.pnl)}">${m.pnl>=0?'+':''}${fe(m.pnl)}</div></div><div><div class="mlb2">Variation</div><div class="mvl2 ${cl(dv)}">${dv>=0?'+':''}${fe(dv)}</div></div></div></div>`;});
   document.getElementById('mcds').innerHTML=h;
 }
 
@@ -1883,7 +1935,12 @@ function delPEA(i){PEAD.splice(i,1);ss('mick_pead',PEAD);rMgr();rPEA();rOv();}
 function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const pe=document.getElementById('pee-p-'+i),pn=document.getElementById('pee-n-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const manualNav=pn&&pn.value!==''?parseFloat(pn.value):f.nav;const autoNav=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;const activeNav=autoNav||manualNav;const newVal=activeNav&&newParts&&newParts>0?+(newParts*activeNav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,nav:isNaN(manualNav)?f.nav:manualNav,val:newVal};});ss('mick_pee',d);showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();}
 function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv,parts:null,code:null});ss('mick_pee',d);showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
 function delPEE(i){const d=ls('mick_pee',PEE);d.splice(i,1);ss('mick_pee',d);rMgr();rPEE();rOv();}
-function showM(msg,t){const el=document.getElementById('msg');el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+function showM(msg,t){
+  const el=document.getElementById('msg');
+  if(el){el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+  const toast=document.getElementById('toast-fixed');
+  if(toast){toast.textContent=msg;toast.className='toast-fixed toast-'+t;toast.style.display='block';clearTimeout(toast._tid);toast._tid=setTimeout(()=>{toast.style.display='none';},3500);}
+}
 function showTab(t){const ns=['ov','pee','tr','pea','cry','la','hist','mgr'];document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',ns[i]===t));document.querySelectorAll('.pg').forEach(el=>el.classList.remove('active'));document.getElementById('pg-'+t).classList.add('active');if(ok){if(t==='ov')rOv();if(t==='tr')rTR();if(t==='pea')rPEA();if(t==='cry')rCry();if(t==='la')rLA();if(t==='hist')rHist();if(t==='mgr')rMgr();if(t==='pee')rPEE();}}
 
 /* ===== 10. HIDE AMOUNTS ===== */
