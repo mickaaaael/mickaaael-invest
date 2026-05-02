@@ -1582,8 +1582,9 @@ function rHistAnnuel(){
     if(!years[y])years[y]={months:[],year:y};
     years[y].months.push({...m,idx:i});
   });
+  const curYear=new Date().getFullYear();
   let h='';
-  Object.keys(years).sort((a,b)=>b-a).forEach(y=>{
+  Object.keys(years).sort((a,b)=>b-a).filter(y=>+y<curYear).forEach(y=>{
     const yr=years[y];
     const last=yr.months[yr.months.length-1];
     const first=yr.months[0];
