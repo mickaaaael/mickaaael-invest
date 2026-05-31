@@ -792,6 +792,13 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div><label>Montant verse (EUR)</label><input id="pee-add-amt" type="number" step="0.01" placeholder="100.00"></div>
       <div><button class="btnp" onclick="addToPEEFund()">Verser</button></div>
     </div>
+    <div class="sl" style="margin-top:1.5rem">Retrait / Correction</div>
+    <div class="info">Retire un montant d'un fonds (val. + investi diminuent). Utile pour corriger une erreur de saisie.</div>
+    <div class="frow">
+      <div><label>Fonds</label><select id="pee-sub-fund"></select></div>
+      <div><label>Montant a retirer (EUR)</label><input id="pee-sub-amt" type="number" step="0.01" placeholder="10.00"></div>
+      <div><button class="btnp" onclick="subFromPEEFund()" style="background:linear-gradient(135deg,#f87171,#ef4444)">Retirer</button></div>
+    </div>
     <div class="sl" style="margin-top:1.5rem">Ajouter un nouveau fonds PEE</div>
     <div class="frow">
       <div><label>Nom du fonds</label><input id="pee-nm" type="text" placeholder="Amundi..."></div>
@@ -2420,6 +2427,9 @@ function rMgrPEE(){
   /* Select versement sur fonds existant */
   const af=document.getElementById('pee-add-fund');
   if(af)af.innerHTML=opts;
+  /* Select retrait/correction */
+  const sub=document.getElementById('pee-sub-fund');
+  if(sub)sub.innerHTML=opts;
   /* Liste complete de tous les fonds */
   let al='<div style="display:grid;gap:6px">';
   d.forEach((f,i)=>{const active=f.val>0||f.inv>0;al+=`<div style="display:grid;grid-template-columns:1fr 100px 100px 40px;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:10px 14px;opacity:${active?1:0.5}"><span style="font-size:12px;font-weight:500">${f.name}</span><span style="font-size:11px;text-align:right;color:var(--text2)">Val: ${fe(f.val)}</span><span style="font-size:11px;text-align:right;color:var(--text2)">Inv: ${fe(f.inv)}</span><button class="btnd" onclick="delPEE(${i})">\u2715</button></div>`;});
@@ -2441,7 +2451,7 @@ function rMgrTxs(){
   if(!list.length){document.getElementById('tx-list').innerHTML='<div style="text-align:center;color:var(--text3);padding:2rem;font-size:12px">Aucune transaction enregistree pour ce filtre.</div>';return;}
   const accountColors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f'};
   const accountLabels={pee:'PEE',tr:'TR',pea:'PEA',crypto:'Crypto'};
-  const typeBadge={buy:'<span style="background:rgba(52,211,153,.1);color:var(--pos);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">ACHAT</span>',sell:'<span style="background:rgba(248,113,113,.08);color:var(--neg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VENTE</span>',add:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',deposit:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',transfer:'<span style="background:rgba(240,194,127,.1);color:var(--gold);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">TRANSFERT</span>',create:'<span style="background:rgba(139,124,246,.12);color:#8b7cf6;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">CREATION</span>'};
+  const typeBadge={buy:'<span style="background:rgba(52,211,153,.1);color:var(--pos);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">ACHAT</span>',sell:'<span style="background:rgba(248,113,113,.08);color:var(--neg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VENTE</span>',add:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',deposit:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',transfer:'<span style="background:rgba(240,194,127,.1);color:var(--gold);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">TRANSFERT</span>',create:'<span style="background:rgba(139,124,246,.12);color:#8b7cf6;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">CREATION</span>',withdraw:'<span style="background:rgba(248,113,113,.08);color:var(--neg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">RETRAIT</span>'};
   let h='<div class="tbl-card"><table><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Compte</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th><th></th></tr></thead><tbody>';
   list.forEach(t=>{
     const dt=new Date(t.ts||t.date);
@@ -2568,6 +2578,13 @@ function reverseTx(tx){
         d[i].inv=(d[i].inv||0)-tx.data.amount;
         ss('mick_pee',d);return{ok:true};
       }
+      if(tx.type==='withdraw'){
+        const i=d.findIndex(f=>f.name===tx.data.fundName);
+        if(i<0)return{ok:false,error:'Fonds '+tx.data.fundName+' introuvable'};
+        d[i].val=(d[i].val||0)+tx.data.amount;
+        d[i].inv=(d[i].inv||0)+tx.data.amount;
+        ss('mick_pee',d);return{ok:true};
+      }
       if(tx.type==='transfer'){
         const fi=d.findIndex(f=>f.name===tx.data.fromName);
         const ti=d.findIndex(f=>f.name===tx.data.toName);
@@ -2634,6 +2651,24 @@ function addToPEEFund(){
   recordTx({account:'pee',type:'add',description:'Versement '+fe(amt)+' sur '+d[idx].name,data:{fundName:d[idx].name,amount:amt}});
   showM('Versement '+fe(amt)+' sur '+d[idx].name,'s');
   document.getElementById('pee-add-amt').value='';
+  rMgrPEE();rPEE();rOv();
+}
+function subFromPEEFund(){
+  const d=ls('mick_pee',PEE);
+  const idx=parseInt(document.getElementById('pee-sub-fund').value);
+  const amt=parseFloat(document.getElementById('pee-sub-amt').value)||0;
+  if(isNaN(idx)||!d[idx]){showM('Selectionne un fonds','i');return;}
+  if(amt<=0){showM('Montant invalide','i');return;}
+  const cur=d[idx].val||0;
+  if(amt>cur+0.01){
+    if(!confirm('Le montant ('+fe(amt)+') depasse la valeur actuelle du fonds ('+fe(cur)+').\n\nContinuer quand meme ? Cela peut rendre les valeurs negatives.'))return;
+  }
+  d[idx].val=cur-amt;
+  d[idx].inv=(d[idx].inv||0)-amt;
+  ss('mick_pee',d);
+  recordTx({account:'pee',type:'withdraw',description:'Retrait / correction '+fe(amt)+' sur '+d[idx].name,data:{fundName:d[idx].name,amount:amt}});
+  showM('Retrait '+fe(amt)+' sur '+d[idx].name,'s');
+  document.getElementById('pee-sub-amt').value='';
   rMgrPEE();rPEE();rOv();
 }
 function transferPEE(){
