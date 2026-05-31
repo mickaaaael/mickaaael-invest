@@ -784,7 +784,14 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div><label>Montant (EUR)</label><input id="pee-tf-amt" type="number" step="0.01"></div>
       <div><button class="btnp" onclick="transferPEE()">Transferer</button></div>
     </div>
-    <div class="sl" style="margin-top:1.5rem">Ajouter un fonds PEE</div>
+    <div class="sl" style="margin-top:1.5rem">Versement sur fonds existant</div>
+    <div class="info">Ajoute un montant a un fonds que tu possedes deja (val. + investi augmentent).</div>
+    <div class="frow">
+      <div><label>Fonds existant</label><select id="pee-add-fund"></select></div>
+      <div><label>Montant verse (EUR)</label><input id="pee-add-amt" type="number" step="0.01" placeholder="100.00"></div>
+      <div><button class="btnp" onclick="addToPEEFund()">Verser</button></div>
+    </div>
+    <div class="sl" style="margin-top:1.5rem">Ajouter un nouveau fonds PEE</div>
     <div class="frow">
       <div><label>Nom du fonds</label><input id="pee-nm" type="text" placeholder="Amundi..."></div>
       <div><label>Valeur actuelle (EUR)</label><input id="pee-vl" type="number" step="0.01"></div>
@@ -2393,11 +2400,27 @@ function rMgrPEE(){
   let opts='';d.forEach((f,i)=>{opts+=`<option value="${i}">${f.name}</option>`;});
   const sf=document.getElementById('pee-tf-from'),st=document.getElementById('pee-tf-to');
   if(sf)sf.innerHTML=opts;if(st)st.innerHTML=opts;
+  /* Select versement sur fonds existant */
+  const af=document.getElementById('pee-add-fund');
+  if(af)af.innerHTML=opts;
   /* Liste complete de tous les fonds */
   let al='<div style="display:grid;gap:6px">';
   d.forEach((f,i)=>{const active=f.val>0||f.inv>0;al+=`<div style="display:grid;grid-template-columns:1fr 100px 100px 40px;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:10px 14px;opacity:${active?1:0.5}"><span style="font-size:12px;font-weight:500">${f.name}</span><span style="font-size:11px;text-align:right;color:var(--text2)">Val: ${fe(f.val)}</span><span style="font-size:11px;text-align:right;color:var(--text2)">Inv: ${fe(f.inv)}</span><button class="btnd" onclick="delPEE(${i})">\u2715</button></div>`;});
   al+='</div>';
   document.getElementById('pee-all-list').innerHTML=al;
+}
+function addToPEEFund(){
+  const d=ls('mick_pee',PEE);
+  const idx=parseInt(document.getElementById('pee-add-fund').value);
+  const amt=parseFloat(document.getElementById('pee-add-amt').value)||0;
+  if(isNaN(idx)||!d[idx]){showM('Selectionne un fonds','i');return;}
+  if(amt<=0){showM('Montant invalide','i');return;}
+  d[idx].val=(d[idx].val||0)+amt;
+  d[idx].inv=(d[idx].inv||0)+amt;
+  ss('mick_pee',d);
+  showM('Versement '+fe(amt)+' sur '+d[idx].name,'s');
+  document.getElementById('pee-add-amt').value='';
+  rMgrPEE();rPEE();rOv();
 }
 function transferPEE(){
   const d=ls('mick_pee',PEE);
