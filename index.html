@@ -855,6 +855,9 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
         <option value="pee">PEE</option>
         <option value="tr">Trade Republic</option>
         <option value="pea">PEA</option>
+        <option value="crypto">Crypto</option>
+        <option value="la">Livret A</option>
+        <option value="settings">Reglages</option>
       </select>
       <span style="font-size:10px;color:var(--text3);margin-left:auto" id="tx-count"></span>
     </div>
@@ -1284,7 +1287,9 @@ function saveAllocTargets(){
   let total=0;
   ['pee','tr','pea','crypto','la'].forEach(s=>{const v=parseFloat(document.getElementById('alloc-'+s).value)||0;t[s]=v;total+=v;});
   if(Math.abs(total-100)>0.5){showM('Le total doit faire 100% (actuel: '+total.toFixed(1)+'%)','e');return;}
+  const before=getAllocTargets();
   ss('mick_alloc_targets',t);
+  if(typeof recordTx==='function')recordTx({account:'settings',type:'modify_alloc',description:'Allocation cible : PEE '+t.pee+'%, TR '+t.tr+'%, PEA '+t.pea+'%, Crypto '+t.crypto+'%, LA '+t.la+'%',data:{before,after:t}});
   showM('Allocation cible sauvegardee !','s');
   rOv();
 }
@@ -1295,7 +1300,9 @@ function rMgrPeaOpen(){
 function savePeaOpenYear(){
   const v=parseInt(document.getElementById('pea-open-year').value,10);
   if(isNaN(v)||v<2000||v>2030){showM('Annee invalide','e');return;}
+  const before=getPeaOpenYear();
   localStorage.setItem('mick_pea_open_year',v);
+  if(typeof recordTx==='function'&&before!==v)recordTx({account:'settings',type:'modify_pea_year',description:'PEA annee d\'ouverture : '+before+' → '+v,data:{before,after:v}});
   showM('Annee d\'ouverture sauvegardee !','s');
   rOv();
 }
@@ -2337,18 +2344,24 @@ function addTRBMonth(){
   const s=parseFloat(document.getElementById('trb-sb').value)||0;
   const v=parseFloat(document.getElementById('trb-vent').value)||0;
   const f=parseFloat(document.getElementById('trb-frais').value)||0;
-  // Si le mois existe déjà, on met à jour au lieu d'ajouter
   const idx=TRB.months.indexOf(name);
+  const before=idx>=0?{div:TRB.divM[idx],sb:TRB.sbM[idx],vent:TRB.ventM[idx],frais:TRB.fraisM[idx]}:null;
   if(idx>=0){TRB.divM[idx]=d;TRB.sbM[idx]=s;TRB.ventM[idx]=v;TRB.fraisM[idx]=f;}
   else{TRB.months.push(name);TRB.divM.push(d);TRB.sbM.push(s);TRB.ventM.push(v);TRB.fraisM.push(f);}
   ss('mick_trb',TRB);
+  const net=d+s+v-f;
+  recordTx({account:'tr',type:before?'revenue_modify':'revenue_add',description:'Revenus TR '+name+' : div '+fe(d)+', sb '+fe(s)+', vent '+fe(v)+', frais '+fe(f)+' (net '+fe(net)+')',data:{month:name,before,after:{div:d,sb:s,vent:v,frais:f}}});
   showM(name+' enregistre !','s');
   ['trb-div','trb-sb','trb-vent','trb-frais'].forEach(id=>{document.getElementById(id).value='0';});
   rMgr();rTR();rOv();
 }
 function delTRBMonth(i){
+  const month=TRB.months[i];
+  const snapshot={month,div:TRB.divM[i],sb:TRB.sbM[i],vent:TRB.ventM[i],frais:TRB.fraisM[i],idx:i};
   TRB.months.splice(i,1);TRB.divM.splice(i,1);TRB.sbM.splice(i,1);TRB.ventM.splice(i,1);TRB.fraisM.splice(i,1);
-  ss('mick_trb',TRB);rMgr();rTR();rOv();
+  ss('mick_trb',TRB);
+  recordTx({account:'tr',type:'revenue_delete',description:'Suppression revenus TR '+month,data:snapshot});
+  rMgr();rTR();rOv();
 }
 let cMgrTrSub='positions';
 function showMgrTrSub(s){
@@ -2477,9 +2490,26 @@ function rMgrTxs(){
   const list=TXS.slice().reverse().filter(t=>filter==='all'||t.account===filter);
   document.getElementById('tx-count').textContent=list.length+' transaction(s)';
   if(!list.length){document.getElementById('tx-list').innerHTML='<div style="text-align:center;color:var(--text3);padding:2rem;font-size:12px">Aucune transaction enregistree pour ce filtre.</div>';return;}
-  const accountColors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f'};
-  const accountLabels={pee:'PEE',tr:'TR',pea:'PEA',crypto:'Crypto'};
-  const typeBadge={buy:'<span style="background:rgba(52,211,153,.1);color:var(--pos);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">ACHAT</span>',sell:'<span style="background:rgba(248,113,113,.08);color:var(--neg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VENTE</span>',add:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',deposit:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',transfer:'<span style="background:rgba(240,194,127,.1);color:var(--gold);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">TRANSFERT</span>',create:'<span style="background:rgba(139,124,246,.12);color:#8b7cf6;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">CREATION</span>',withdraw:'<span style="background:rgba(248,113,113,.08);color:var(--neg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">RETRAIT</span>'};
+  const accountColors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f',la:'#60a5fa',settings:'#94a3b8'};
+  const accountLabels={pee:'PEE',tr:'TR',pea:'PEA',crypto:'Crypto',la:'Livret A',settings:'Reglages'};
+  const _bdg=(bg,col,txt)=>`<span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">${txt}</span>`;
+  const typeBadge={
+    buy:_bdg('rgba(52,211,153,.1)','var(--pos)','ACHAT'),
+    sell:_bdg('rgba(248,113,113,.08)','var(--neg)','VENTE'),
+    add:_bdg('rgba(91,108,240,.12)','var(--accent)','VERSEMENT'),
+    deposit:_bdg('rgba(91,108,240,.12)','var(--accent)','VERSEMENT'),
+    transfer:_bdg('rgba(240,194,127,.1)','var(--gold)','TRANSFERT'),
+    create:_bdg('rgba(139,124,246,.12)','#8b7cf6','CREATION'),
+    withdraw:_bdg('rgba(248,113,113,.08)','var(--neg)','RETRAIT'),
+    delete:_bdg('rgba(248,113,113,.15)','#fca5a5','SUPPRESSION'),
+    modify:_bdg('rgba(96,165,250,.12)','#60a5fa','MODIFICATION'),
+    modify_vals:_bdg('rgba(96,165,250,.12)','#60a5fa','MAJ VALEURS'),
+    modify_alloc:_bdg('rgba(148,163,184,.12)','#94a3b8','ALLOCATION'),
+    modify_pea_year:_bdg('rgba(148,163,184,.12)','#94a3b8','REGLAGE'),
+    revenue_add:_bdg('rgba(52,211,153,.1)','var(--pos)','REVENU +'),
+    revenue_modify:_bdg('rgba(96,165,250,.12)','#60a5fa','REVENU MAJ'),
+    revenue_delete:_bdg('rgba(248,113,113,.15)','#fca5a5','REVENU SUPPR')
+  };
   let h='<div class="tbl-card"><table><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Compte</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th><th></th></tr></thead><tbody>';
   list.forEach(t=>{
     const dt=new Date(t.ts||t.date);
@@ -2513,7 +2543,7 @@ function delTx(id){
   TXS.splice(idx,1);
   ss('mick_txs',TXS);
   showM('Transaction supprimee'+(canReverse?' et annulee':''),'s');
-  rMgrTxs();rPEE();rTR();rPEA();rOv();
+  rMgrTxs();rPEE();rTR();rPEA();rCry();rLA();rOv();
 }
 function editTx(id){
   const idx=TXS.findIndex(t=>t.id===id);
@@ -2524,7 +2554,7 @@ function editTx(id){
   if(!result.ok){showM('Erreur : '+result.error,'e');return;}
   TXS.splice(idx,1);
   ss('mick_txs',TXS);
-  rPEE();rTR();rPEA();rOv();
+  rPEE();rTR();rPEA();rCry();rLA();rOv();
   /* Switch to the right tab and prefill */
   if(tx.account==='pee'){
     showMgr('pee');
@@ -2597,6 +2627,85 @@ function editTx(id){
 }
 function reverseTx(tx){
   try{
+    /* === DELETIONS (recreation) === */
+    if(tx.type==='delete'){
+      if(tx.account==='pee'){
+        const d=ls('mick_pee',PEE);d.push(tx.data.fund);ss('mick_pee',d);return{ok:true};
+      }
+      if(tx.account==='pea'){PEAD.push(tx.data.position);ss('mick_pead',PEAD);return{ok:true};}
+      if(tx.account==='tr'){
+        const sub=tx.data.subtype;
+        const arr=sub==='act'?TRA:sub==='etf'?TRE:sub==='obl'?TRO:TRP;
+        const key=sub==='act'?'mick_tra':sub==='etf'?'mick_tre':sub==='obl'?'mick_tro':'mick_trp';
+        arr.push(tx.data.position);ss(key,arr);return{ok:true};
+      }
+      if(tx.account==='crypto'){
+        if(!port[tx.data.pl])port[tx.data.pl]=[];
+        port[tx.data.pl].push(tx.data.position);ss('mp9',port);return{ok:true};
+      }
+    }
+    /* === CRYPTO MODIFY/CREATE/BUY/TRANSFER === */
+    if(tx.account==='crypto'){
+      if(tx.type==='modify'){
+        if(!port[tx.data.pl])return{ok:false,error:'Plateforme absente'};
+        const i=port[tx.data.pl].findIndex(c=>c.symbol===tx.data.sym);
+        if(i<0)return{ok:false,error:'Position '+tx.data.sym+' absente'};
+        port[tx.data.pl][i].qty=tx.data.before.qty;
+        port[tx.data.pl][i].avgBuy=tx.data.before.avgBuy;
+        ss('mp9',port);return{ok:true};
+      }
+      if(tx.type==='create'){
+        const i=(port[tx.data.pl]||[]).findIndex(c=>c.symbol===tx.data.sym);
+        if(i>=0){port[tx.data.pl].splice(i,1);ss('mp9',port);}
+        return{ok:true};
+      }
+      if(tx.type==='buy'){
+        const i=(port[tx.data.pl]||[]).findIndex(c=>c.symbol===tx.data.sym);
+        if(i<0)return{ok:false,error:'Position '+tx.data.sym+' absente'};
+        const c=port[tx.data.pl][i];
+        const oldQty=c.qty-tx.data.qty;
+        if(oldQty<=0.000001)port[tx.data.pl].splice(i,1);
+        else{c.avgBuy=oldQty>0?(c.avgBuy*c.qty-tx.data.price*tx.data.qty)/oldQty:0;c.qty=oldQty;}
+        ss('mp9',port);return{ok:true};
+      }
+      if(tx.type==='transfer'){
+        const ti=(port[tx.data.to]||[]).findIndex(c=>c.symbol===tx.data.sym);
+        if(ti>=0){port[tx.data.to][ti].qty-=tx.data.qty;if(port[tx.data.to][ti].qty<=0.000001)port[tx.data.to].splice(ti,1);}
+        if(!port[tx.data.from])port[tx.data.from]=[];
+        const fi=port[tx.data.from].findIndex(c=>c.symbol===tx.data.sym);
+        if(fi>=0){port[tx.data.from][fi].qty+=tx.data.qty;}
+        else port[tx.data.from].push({symbol:tx.data.sym,qty:tx.data.qty,avgBuy:tx.data.avgBuy});
+        ss('mp9',port);return{ok:true};
+      }
+    }
+    /* === LIVRET A === */
+    if(tx.account==='la'&&tx.type==='modify'){
+      ss('mick_la',tx.data.before);return{ok:true};
+    }
+    /* === SETTINGS === */
+    if(tx.account==='settings'){
+      if(tx.type==='modify_alloc'){ss('mick_alloc_targets',tx.data.before);return{ok:true};}
+      if(tx.type==='modify_pea_year'){localStorage.setItem('mick_pea_open_year',tx.data.before);return{ok:true};}
+    }
+    /* === TR REVENUES === */
+    if(tx.account==='tr'){
+      if(tx.type==='revenue_add'||tx.type==='revenue_modify'){
+        const i=TRB.months.indexOf(tx.data.month);
+        if(i<0)return{ok:false,error:'Mois absent'};
+        if(tx.data.before){TRB.divM[i]=tx.data.before.div;TRB.sbM[i]=tx.data.before.sb;TRB.ventM[i]=tx.data.before.vent;TRB.fraisM[i]=tx.data.before.frais;}
+        else{TRB.months.splice(i,1);TRB.divM.splice(i,1);TRB.sbM.splice(i,1);TRB.ventM.splice(i,1);TRB.fraisM.splice(i,1);}
+        ss('mick_trb',TRB);return{ok:true};
+      }
+      if(tx.type==='revenue_delete'){
+        const idx=tx.data.idx;
+        TRB.months.splice(idx,0,tx.data.month);
+        TRB.divM.splice(idx,0,tx.data.div);TRB.sbM.splice(idx,0,tx.data.sb);
+        TRB.ventM.splice(idx,0,tx.data.vent);TRB.fraisM.splice(idx,0,tx.data.frais);
+        ss('mick_trb',TRB);return{ok:true};
+      }
+    }
+    /* === PEE MODIFY VALS === */
+    if(tx.account==='pee'&&tx.type==='modify_vals'){ss('mick_pee',tx.data.before);return{ok:true};}
     if(tx.account==='pee'){
       const d=ls('mick_pee',PEE);
       if(tx.type==='add'){
@@ -2803,12 +2912,29 @@ function transferPEE(){
 }
 
 /* ===== ACTIONS ===== */
-function sPos(){const pl=document.getElementById('f-pl').value,sym=document.getElementById('f-sy').value.toUpperCase().trim(),qty=parseFloat(document.getElementById('f-qt').value),avg=parseFloat(document.getElementById('f-av').value)||0;if(!sym||isNaN(qty)||qty<=0){showM('Symbole et quantite obligatoires','i');return;}if(!port[pl])port[pl]=[];const idx=port[pl].findIndex(c=>c.symbol===sym);if(idx>=0){port[pl][idx].qty=qty;port[pl][idx].avgBuy=avg;}else port[pl].push({symbol:sym,qty,avgBuy:avg});ss('mp9',port);showM(sym+' mis a jour sur '+pl+'!','s');rMgr();rCry();rOv();['f-sy','f-qt','f-av'].forEach(id=>document.getElementById(id).value='');}
-function dPos(pl,i){port[pl].splice(i,1);ss('mp9',port);rMgr();rCry();rOv();}
+function sPos(){
+  const pl=document.getElementById('f-pl').value,sym=document.getElementById('f-sy').value.toUpperCase().trim(),qty=parseFloat(document.getElementById('f-qt').value),avg=parseFloat(document.getElementById('f-av').value)||0;
+  if(!sym||isNaN(qty)||qty<=0){showM('Symbole et quantite obligatoires','i');return;}
+  if(!port[pl])port[pl]=[];
+  const idx=port[pl].findIndex(c=>c.symbol===sym);
+  const before=idx>=0?{qty:port[pl][idx].qty,avgBuy:port[pl][idx].avgBuy}:null;
+  if(idx>=0){port[pl][idx].qty=qty;port[pl][idx].avgBuy=avg;}else port[pl].push({symbol:sym,qty,avgBuy:avg});
+  ss('mp9',port);
+  recordTx({account:'crypto',type:before?'modify':'create',description:(before?'Modif':'Creation')+' position '+sym+' '+pl+(before?' (qty '+before.qty+'→'+qty+', moy '+fpx(before.avgBuy||0)+'→'+fpx(avg)+')':' (qty '+qty+', moy '+fpx(avg)+')'),data:{pl,sym,before,after:{qty,avgBuy:avg}}});
+  showM(sym+' mis a jour sur '+pl+'!','s');rMgr();rCry();rOv();
+  ['f-sy','f-qt','f-av'].forEach(id=>document.getElementById(id).value='');
+}
+function dPos(pl,i){
+  const pos=port[pl][i];if(!pos)return;
+  const snapshot=JSON.parse(JSON.stringify(pos));
+  port[pl].splice(i,1);ss('mp9',port);
+  recordTx({account:'crypto',type:'delete',description:'Suppression position '+pos.symbol+' '+pl+' (qty '+pos.qty+')',data:{pl,position:snapshot}});
+  rMgr();rCry();rOv();
+}
 function sOp(){const t=document.getElementById('op-t').value,s=document.getElementById('op-s').value.toUpperCase().trim(),q=parseFloat(document.getElementById('op-q').value),p=parseFloat(document.getElementById('op-p').value)||0,from=document.getElementById('op-from').value;if(!s||isNaN(q)||q<=0){showM('Symbole et quantite obligatoires','i');return;}
-  if(t==='transfer'){const to=document.getElementById('op-to').value;if(from===to){showM('Source et destination identiques','i');return;}const si=(port[from]||[]).findIndex(c=>c.symbol===s);if(si<0){showM(s+' non trouve sur '+from,'i');return;}const src=port[from][si];if(src.qty<q-0.000001){showM('Quantite insuffisante','i');return;}const ab=src.avgBuy;src.qty-=q;if(src.qty<0.000001)port[from].splice(si,1);if(!port[to])port[to]=[];const di=port[to].findIndex(c=>c.symbol===s);if(di>=0){const d=port[to][di],nq=d.qty+q;d.avgBuy=(d.avgBuy*d.qty+ab*q)/nq;d.qty=nq;}else port[to].push({symbol:s,qty:q,avgBuy:ab});ss('mp9',port);ops.push({t:'transfer',s,q,p:0,from,to,d:new Date().toLocaleDateString('fr-FR')});ss('mo9',ops);showM('Transfert '+fq(q)+' '+s+' : '+from+' \u2192 '+to,'s');
-  }else if(t==='buy'){if(!port[from])port[from]=[];const idx=port[from].findIndex(c=>c.symbol===s);if(idx>=0){const c=port[from][idx],nq=c.qty+q;c.avgBuy=(c.avgBuy*c.qty+p*q)/nq;c.qty=nq;}else port[from].push({symbol:s,qty:q,avgBuy:p});ss('mp9',port);ops.push({t,s,q,p,from,d:new Date().toLocaleDateString('fr-FR')});ss('mo9',ops);showM('Achat '+fq(q)+' '+s+' sur '+from,'s');
-  }else{const si=(port[from]||[]).findIndex(c=>c.symbol===s);if(si<0){showM(s+' non trouve sur '+from,'i');return;}port[from][si].qty-=q;if(port[from][si].qty<0.000001)port[from].splice(si,1);ss('mp9',port);ops.push({t,s,q,p,from,d:new Date().toLocaleDateString('fr-FR')});ss('mo9',ops);showM('Vente '+fq(q)+' '+s+' sur '+from,'s');}
+  if(t==='transfer'){const to=document.getElementById('op-to').value;if(from===to){showM('Source et destination identiques','i');return;}const si=(port[from]||[]).findIndex(c=>c.symbol===s);if(si<0){showM(s+' non trouve sur '+from,'i');return;}const src=port[from][si];if(src.qty<q-0.000001){showM('Quantite insuffisante','i');return;}const ab=src.avgBuy;src.qty-=q;if(src.qty<0.000001)port[from].splice(si,1);if(!port[to])port[to]=[];const di=port[to].findIndex(c=>c.symbol===s);if(di>=0){const d=port[to][di],nq=d.qty+q;d.avgBuy=(d.avgBuy*d.qty+ab*q)/nq;d.qty=nq;}else port[to].push({symbol:s,qty:q,avgBuy:ab});ss('mp9',port);ops.push({t:'transfer',s,q,p:0,from,to,d:new Date().toLocaleDateString('fr-FR')});ss('mo9',ops);recordTx({account:'crypto',type:'transfer',description:'Transfert crypto '+fq(q)+' '+s+' : '+from+' \u2192 '+to,data:{sym:s,qty:q,avgBuy:ab,from,to}});showM('Transfert '+fq(q)+' '+s+' : '+from+' \u2192 '+to,'s');
+  }else if(t==='buy'){if(!port[from])port[from]=[];const idx=port[from].findIndex(c=>c.symbol===s);if(idx>=0){const c=port[from][idx],nq=c.qty+q;c.avgBuy=(c.avgBuy*c.qty+p*q)/nq;c.qty=nq;}else port[from].push({symbol:s,qty:q,avgBuy:p});ss('mp9',port);ops.push({t,s,q,p,from,d:new Date().toLocaleDateString('fr-FR')});ss('mo9',ops);recordTx({account:'crypto',type:'buy',description:'Achat crypto '+fq(q)+' '+s+' \u00e0 '+fpx(p)+' sur '+from,data:{sym:s,qty:q,price:p,pl:from}});showM('Achat '+fq(q)+' '+s+' sur '+from,'s');
+  }else{const si=(port[from]||[]).findIndex(c=>c.symbol===s);if(si<0){showM(s+' non trouve sur '+from,'i');return;}const oldAvg=port[from][si].avgBuy;port[from][si].qty-=q;if(port[from][si].qty<0.000001)port[from].splice(si,1);ss('mp9',port);ops.push({t,s,q,p,from,d:new Date().toLocaleDateString('fr-FR')});ss('mo9',ops);recordTx({account:'crypto',type:'sell',description:'Vente crypto '+fq(q)+' '+s+' \u00e0 '+fpx(p)+' sur '+from,data:{sym:s,qty:q,price:p,pl:from,oldAvg},reversible:false});showM('Vente '+fq(q)+' '+s+' sur '+from,'s');}
   rMgr();rCry();rOv();['op-s','op-q','op-p'].forEach(id=>document.getElementById(id).value='');}
 function dOp(i){ops.splice(i,1);ss('mo9',ops);rMgr();}
 function tglTrOp(){const isSell=document.getElementById('tr-op').value==='sell';document.getElementById('tr-avw').querySelector('label').textContent=isSell?'Prix de vente (EUR)':'Prix unitaire (EUR)';}
@@ -2887,7 +3013,16 @@ function addTR(){
   const _rn=document.getElementById('tr-nm-new');if(_rn){_rn.value='';_rn.style.display='none';}
   document.getElementById('tr-fr').value='0';rMgr();rTR();rOv();
 }
-function delTR(type,i){if(type==='act'){TRA.splice(i,1);ss('mick_tra',TRA);}else if(type==='etf'){TRE.splice(i,1);ss('mick_tre',TRE);}else if(type==='obl'){TRO.splice(i,1);ss('mick_tro',TRO);}else{TRP.splice(i,1);ss('mick_trp',TRP);}rMgr();rTR();rOv();}
+function delTR(type,i){
+  const arr=type==='act'?TRA:type==='etf'?TRE:type==='obl'?TRO:TRP;
+  const key=type==='act'?'mick_tra':type==='etf'?'mick_tre':type==='obl'?'mick_tro':'mick_trp';
+  const pos=arr[i];
+  if(!pos)return;
+  const snapshot=JSON.parse(JSON.stringify(pos));
+  arr.splice(i,1);ss(key,arr);
+  recordTx({account:'tr',type:'delete',description:'Suppression TR ['+type.toUpperCase()+'] '+pos.name+' (val '+fe(pos.val||0)+')',data:{subtype:type,position:snapshot}});
+  rMgr();rTR();rOv();
+}
 function addPEA(){
   const op=document.getElementById('pea-op').value;
   // Versement especes PEA
@@ -2955,10 +3090,35 @@ function addPEA(){
   ['pea-tk','pea-qt','pea-av'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pea-fr').value='0';rMgr();rPEA();rOv();
 }
-function delPEA(i){PEAD.splice(i,1);ss('mick_pead',PEAD);rMgr();rPEA();rOv();}
-function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const pe=document.getElementById('pee-p-'+i),pn=document.getElementById('pee-n-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const manualNav=pn&&pn.value!==''?parseFloat(pn.value):f.nav;const autoNav=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;const activeNav=autoNav||manualNav;const newVal=activeNav&&newParts&&newParts>0?+(newParts*activeNav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,nav:isNaN(manualNav)?f.nav:manualNav,val:newVal};});ss('mick_pee',d);showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();}
+function delPEA(i){
+  const pos=PEAD[i];if(!pos)return;
+  const snapshot=JSON.parse(JSON.stringify(pos));
+  PEAD.splice(i,1);ss('mick_pead',PEAD);
+  recordTx({account:'pea',type:'delete',description:'Suppression PEA '+pos.name+' (val '+fe(pos.val||0)+')',data:{position:snapshot}});
+  rMgr();rPEA();rOv();
+}
+function savePEE(){
+  const oldD=ls('mick_pee',PEE);
+  const d=oldD.map((f,i)=>{const pe=document.getElementById('pee-p-'+i),pn=document.getElementById('pee-n-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const manualNav=pn&&pn.value!==''?parseFloat(pn.value):f.nav;const autoNav=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;const activeNav=autoNav||manualNav;const newVal=activeNav&&newParts&&newParts>0?+(newParts*activeNav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,nav:isNaN(manualNav)?f.nav:manualNav,val:newVal};});
+  /* Detecte les changements significatifs */
+  const changes=[];
+  d.forEach((f,i)=>{
+    const old=oldD[i];if(!old)return;
+    if((old.val||0).toFixed(2)!==(f.val||0).toFixed(2))changes.push(f.name+' val '+fe(old.val||0)+'→'+fe(f.val||0));
+    if((old.parts||0)!==(f.parts||0))changes.push(f.name+' parts '+(old.parts||0)+'→'+(f.parts||0));
+  });
+  ss('mick_pee',d);
+  if(changes.length)recordTx({account:'pee',type:'modify_vals',description:'Maj valeurs PEE : '+changes.slice(0,3).join(' · ')+(changes.length>3?' (+'+(changes.length-3)+')':''),data:{before:oldD,after:d}});
+  showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();
+}
 function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv,parts:null,code:null});ss('mick_pee',d);recordTx({account:'pee',type:'create',description:'Nouveau fonds : '+name+' (val '+fe(val)+', inv '+fe(inv)+')',data:{fundName:name,val,inv}});showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
-function delPEE(i){const d=ls('mick_pee',PEE);d.splice(i,1);ss('mick_pee',d);rMgr();rPEE();rOv();}
+function delPEE(i){
+  const d=ls('mick_pee',PEE);const fund=d[i];if(!fund)return;
+  const snapshot=JSON.parse(JSON.stringify(fund));
+  d.splice(i,1);ss('mick_pee',d);
+  recordTx({account:'pee',type:'delete',description:'Suppression PEE '+fund.name+' (val '+fe(fund.val||0)+')',data:{fund:snapshot}});
+  rMgr();rPEE();rOv();
+}
 function showM(msg,t){
   const el=document.getElementById('msg');
   if(el){el.textContent=msg;el.className='alrt alrt-'+t;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
@@ -3100,7 +3260,12 @@ function saveLA(){
   const taux=parseFloat(document.getElementById('la-taux').value);
   if(isNaN(val)||val<0){showM('Solde invalide','i');return;}
   if(isNaN(taux)||taux<0){showM('Taux invalide','i');return;}
+  const before=ls('mick_la',LA_D);
   ss('mick_la',{val,taux});
+  const changes=[];
+  if((before.val||0)!==val)changes.push('solde '+fe(before.val||0)+' → '+fe(val));
+  if((before.taux||0)!==taux)changes.push('taux '+(before.taux||0).toFixed(2)+'% → '+taux.toFixed(2)+'%');
+  if(changes.length)recordTx({account:'la',type:'modify',description:'Livret A : '+changes.join(', '),data:{before,after:{val,taux}}});
   showM('Livret A mis a jour : '+fe(val)+' a '+taux.toFixed(2)+' %','s');
   rLA();rOv();
 }
