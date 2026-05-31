@@ -669,6 +669,7 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <button class="ptb" onclick="showMgr('pee')">PEE</button>
     <button class="ptb" onclick="showMgr('la')">Livret A</button>
     <button class="ptb" onclick="showMgr('alerts')">Alertes</button>
+    <button class="ptb" onclick="showMgr('txs')">📋 Historique</button>
   </div>
   <div id="mgr-mensuel">
     <div class="info">Mets a jour les valeurs ci-dessous chaque mois. Les positions avec prix automatique (Yahoo/Binance) ne sont pas listees ici.</div>
@@ -823,6 +824,21 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     <div id="alerts-list"></div>
     <div id="alerts-triggered" style="margin-top:1rem"></div>
   </div>
+  <div id="mgr-txs" style="display:none">
+    <div class="sl" style="margin-top:.5rem">📋 Historique des transactions</div>
+    <div class="info">Liste de toutes les transactions enregistrees (versements, achats, ventes, transferts). Supprimer une transaction annule son effet.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center">
+      <label style="font-size:11px;color:var(--text3);font-weight:600">Filtre :</label>
+      <select id="tx-filter" onchange="rMgrTxs()" style="padding:8px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none">
+        <option value="all">Tous les comptes</option>
+        <option value="pee">PEE</option>
+        <option value="tr">Trade Republic</option>
+        <option value="pea">PEA</option>
+      </select>
+      <span style="font-size:10px;color:var(--text3);margin-left:auto" id="tx-count"></span>
+    </div>
+    <div id="tx-list"></div>
+  </div>
 </div>
 
 </div><!-- /app -->
@@ -886,6 +902,7 @@ function trbGet(){
 }
 const FB={c:{BTC:58400,ETH:1730,SOL:68.6,USDC:0.917,DOGE:0.0799,AVAX:15.8,AAVE:79.5,PENDLE:2.35,SUI:1.85,DOT:3.12,LINK:7.36,XRP:1.21,COOKIE:0.038,AIXBT:0.058,FWOG:0.007,ELIZAOS:0.013},s:{'PLX.PA':9.8,'EDEN.PA':42.5,'AMZN':167,'V':255,'WPEA.PA':11.73,'CW8.PA':50,'PUST.PA':90.34,'IGLN.L':93.0,'IE000UL6CLP7.SG':38.71,'IE00BJ5JPG56.SG':4.90,'IE00BHZRQZ17.SG':34.74,'LYMD.DE':19.78,'LCUJ.DE':20.55}};
 let CP={},SP={},SP_RAW={},EU=1/1.154,port,ops,TRA=TRA_D,TRE=TRE_D,TRO=TRO_D,TRP=TRP_D,PEAD=PEAD_D,cTr='all',cCry='all',cMgr='mensuel',CH={},ok=false;
+let TXS=[];
 let crySort='val',prevSnap={},hideMode=false,evoFilter='all',PEENAV={},cCryEvo='all',CRYPT_PLAT={};
 let CP_USD={},CP_CHG={};
 const BANNER_YH=['^GSPC','^FCHI','CW8.PA'];
@@ -1142,7 +1159,7 @@ async function fetchYH(){
 async function load(){
   sv('upd','Recuperation des prix...');
   document.getElementById('pills').innerHTML='<button class="btn-refresh" disabled><span class="sp"></span>Chargement...</button>';
-  port=ls('mp9',JSON.parse(JSON.stringify(DC)));ops=ls('mo9',[]);loadTRB();
+  port=ls('mp9',JSON.parse(JSON.stringify(DC)));ops=ls('mo9',[]);TXS=ls('mick_txs',[]);loadTRB();
   TRA=ls('mick_tra',JSON.parse(JSON.stringify(TRA_D)));TRE=ls('mick_tre',JSON.parse(JSON.stringify(TRE_D)));TRO=ls('mick_tro',JSON.parse(JSON.stringify(TRO_D)));TRP=ls('mick_trp',JSON.parse(JSON.stringify(TRP_D)));PEAD=ls('mick_pead',JSON.parse(JSON.stringify(PEAD_D)));
   // Migration: ajoute les tickers manquants depuis PEAD_D par correspondance de nom
   let peadPatched=false;PEAD=PEAD.map(p=>{if(!p.t){const def=PEAD_D.find(d=>d.name===p.name);if(def&&def.t){peadPatched=true;return{...p,t:def.t};}}return p;});if(peadPatched)ss('mick_pead',PEAD);
@@ -2215,10 +2232,10 @@ function rHist(){
 }
 
 /* ===== GERER ===== */
-function showMgr(s){cMgr=s;document.querySelectorAll('#mgr-pt .ptb').forEach((el,i)=>el.classList.toggle('active',['mensuel','crypto','tr','pea','pee','la','alerts'][i]===s));['mensuel','crypto','tr','pea','pee','la','alerts'].forEach(id=>{document.getElementById('mgr-'+id).style.display=id===s?'block':'none';});rMgr();}
+function showMgr(s){cMgr=s;document.querySelectorAll('#mgr-pt .ptb').forEach((el,i)=>el.classList.toggle('active',['mensuel','crypto','tr','pea','pee','la','alerts','txs'][i]===s));['mensuel','crypto','tr','pea','pee','la','alerts','txs'].forEach(id=>{document.getElementById('mgr-'+id).style.display=id===s?'block':'none';});rMgr();}
 function tglTr(){const isT=document.getElementById('op-t').value==='transfer';document.getElementById('op-tow').style.display=isT?'':'none';document.getElementById('op-pw').style.display=isT?'none':'';}
 function tglObl(){document.getElementById('tr-cpw').style.display=document.getElementById('tr-tp').value==='obl'?'':'none';buildTRNmSel();}
-function rMgr(){if(cMgr==='mensuel'){rMgrMensuel();rMgrTRB();rHistExtraList();rMgrAllocForm();rMgrPeaOpen();}else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='la')rMgrLA();else if(cMgr==='alerts')rMgrAlerts();else rMgrPEE();}
+function rMgr(){if(cMgr==='mensuel'){rMgrMensuel();rMgrTRB();rHistExtraList();rMgrAllocForm();rMgrPeaOpen();}else if(cMgr==='crypto')rMgrC();else if(cMgr==='tr')rMgrTR();else if(cMgr==='pea')rMgrPEA();else if(cMgr==='la')rMgrLA();else if(cMgr==='alerts')rMgrAlerts();else if(cMgr==='txs')rMgrTxs();else rMgrPEE();}
 function rMgrMensuel(){
   let h='',n=0;
   const inp=(id,val)=>'<input id="mu-'+id+'" type="number" step="0.01" value="'+(val||'')+'" style="width:150px;padding:9px 12px;font-size:12px;border:1px solid var(--brd2);border-radius:10px;background:var(--bg3);color:var(--text);text-align:right;font-family:inherit;outline:none">';
@@ -2409,6 +2426,202 @@ function rMgrPEE(){
   al+='</div>';
   document.getElementById('pee-all-list').innerHTML=al;
 }
+/* ===== TRANSACTION HISTORY ===== */
+function recordTx(tx){
+  tx.id=Date.now()+'-'+Math.random().toString(36).slice(2,6);
+  tx.ts=Date.now();
+  tx.date=new Date().toISOString();
+  TXS.push(tx);
+  ss('mick_txs',TXS);
+}
+function rMgrTxs(){
+  const filter=document.getElementById('tx-filter')?document.getElementById('tx-filter').value:'all';
+  const list=TXS.slice().reverse().filter(t=>filter==='all'||t.account===filter);
+  document.getElementById('tx-count').textContent=list.length+' transaction(s)';
+  if(!list.length){document.getElementById('tx-list').innerHTML='<div style="text-align:center;color:var(--text3);padding:2rem;font-size:12px">Aucune transaction enregistree pour ce filtre.</div>';return;}
+  const accountColors={pee:'#5b6cf0',tr:'#c084fc',pea:'#34d399',crypto:'#f0c27f'};
+  const accountLabels={pee:'PEE',tr:'TR',pea:'PEA',crypto:'Crypto'};
+  const typeBadge={buy:'<span style="background:rgba(52,211,153,.1);color:var(--pos);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">ACHAT</span>',sell:'<span style="background:rgba(248,113,113,.08);color:var(--neg);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VENTE</span>',add:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',deposit:'<span style="background:rgba(91,108,240,.12);color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">VERSEMENT</span>',transfer:'<span style="background:rgba(240,194,127,.1);color:var(--gold);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">TRANSFERT</span>',create:'<span style="background:rgba(139,124,246,.12);color:#8b7cf6;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">CREATION</span>'};
+  let h='<div class="tbl-card"><table><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Compte</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th><th></th></tr></thead><tbody>';
+  list.forEach(t=>{
+    const dt=new Date(t.ts||t.date);
+    const dStr=dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const canReverse=t.reversible!==false;
+    h+=`<tr>
+      <td style="font-size:11px;color:var(--text2)">${dStr}</td>
+      <td><span style="background:${accountColors[t.account]||'#777'}22;color:${accountColors[t.account]||'#777'};font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px">${accountLabels[t.account]||t.account}</span></td>
+      <td>${typeBadge[t.type]||'<span style="font-size:10px;color:var(--text3)">'+t.type+'</span>'}</td>
+      <td style="font-size:12px">${t.description||''}</td>
+      <td style="display:flex;gap:4px;justify-content:flex-end">
+        ${canReverse?`<button class="btnd" onclick="editTx('${t.id}')" title="Modifier (annule puis pre-remplit le formulaire)" style="background:rgba(91,108,240,.15);color:var(--accent);border-color:rgba(91,108,240,.3)">✎</button>`:''}
+        <button class="btnd" onclick="delTx('${t.id}')" title="${canReverse?'Annuler cette transaction':'Suppression seule (effet non annulable)'}">${canReverse?'✕':'⚠'}</button>
+      </td>
+    </tr>`;
+  });
+  h+='</tbody></table></div>';
+  document.getElementById('tx-list').innerHTML=h;
+}
+function delTx(id){
+  const idx=TXS.findIndex(t=>t.id===id);
+  if(idx<0){showM('Transaction introuvable','i');return;}
+  const tx=TXS[idx];
+  const canReverse=tx.reversible!==false;
+  const msg=canReverse?'Supprimer cette transaction et annuler son effet ?\n\n'+tx.description:'⚠ Cette transaction (vente) n\'est PAS reversible automatiquement.\n\nLa supprimer ne retablira PAS la position vendue.\nElle sera seulement retiree de l\'historique.\n\nContinuer ?';
+  if(!confirm(msg))return;
+  if(canReverse){
+    const result=reverseTx(tx);
+    if(!result.ok){showM('Erreur : '+result.error,'e');return;}
+  }
+  TXS.splice(idx,1);
+  ss('mick_txs',TXS);
+  showM('Transaction supprimee'+(canReverse?' et annulee':''),'s');
+  rMgrTxs();rPEE();rTR();rPEA();rOv();
+}
+function editTx(id){
+  const idx=TXS.findIndex(t=>t.id===id);
+  if(idx<0)return;
+  const tx=TXS[idx];
+  if(!confirm('Modifier cette transaction ?\n\n'+tx.description+'\n\nElle sera annulee et le formulaire pre-rempli pour ressaisie.'))return;
+  const result=reverseTx(tx);
+  if(!result.ok){showM('Erreur : '+result.error,'e');return;}
+  TXS.splice(idx,1);
+  ss('mick_txs',TXS);
+  rPEE();rTR();rPEA();rOv();
+  /* Switch to the right tab and prefill */
+  if(tx.account==='pee'){
+    showMgr('pee');
+    setTimeout(()=>{
+      if(tx.type==='add'){
+        const d=ls('mick_pee',PEE);
+        const i=d.findIndex(f=>f.name===tx.data.fundName);
+        if(i>=0){document.getElementById('pee-add-fund').value=i;document.getElementById('pee-add-amt').value=tx.data.amount;document.getElementById('pee-add-amt').focus();}
+      }else if(tx.type==='transfer'){
+        const d=ls('mick_pee',PEE);
+        const fi=d.findIndex(f=>f.name===tx.data.fromName);
+        const ti=d.findIndex(f=>f.name===tx.data.toName);
+        if(fi>=0)document.getElementById('pee-tf-from').value=fi;
+        if(ti>=0)document.getElementById('pee-tf-to').value=ti;
+        document.getElementById('pee-tf-amt').value=tx.data.amount;
+        document.getElementById('pee-tf-amt').focus();
+      }else if(tx.type==='create'){
+        document.getElementById('pee-nm').value=tx.data.fundName;
+        document.getElementById('pee-vl').value=tx.data.val;
+        document.getElementById('pee-iv').value=tx.data.inv;
+        document.getElementById('pee-nm').focus();
+      }
+    },200);
+  }else if(tx.account==='tr'&&tx.type==='buy'){
+    showMgr('tr');
+    setTimeout(()=>{
+      document.getElementById('tr-op').value='buy';
+      document.getElementById('tr-tp').value=tx.data.subtype;
+      tglObl();
+      const sel=document.getElementById('tr-nm-sel');
+      buildTRNmSel();
+      if(sel){
+        const exists=Array.from(sel.options).find(o=>o.value===tx.data.name);
+        if(exists){sel.value=tx.data.name;onTRNmChange();}
+        else{sel.value='__new__';document.getElementById('tr-nm-new').style.display='';document.getElementById('tr-nm-new').value=tx.data.name;}
+      }
+      if(tx.data.ticker)document.getElementById('tr-tk').value=tx.data.ticker;
+      document.getElementById('tr-qt').value=tx.data.qty;
+      document.getElementById('tr-av').value=tx.data.price;
+      document.getElementById('tr-fr').value=tx.data.frais||0;
+      if(tx.data.coupon)document.getElementById('tr-cp').value=tx.data.coupon;
+      document.getElementById('tr-qt').focus();
+    },200);
+  }else if(tx.account==='pea'){
+    showMgr('pea');
+    setTimeout(()=>{
+      if(tx.type==='deposit'){
+        document.getElementById('pea-op').value='deposit';
+        if(typeof onPEAOpChange==='function')onPEAOpChange();
+        document.getElementById('pea-av').value=tx.data.amount;
+        document.getElementById('pea-av').focus();
+      }else if(tx.type==='buy'){
+        document.getElementById('pea-op').value='buy';
+        if(typeof onPEAOpChange==='function')onPEAOpChange();
+        const sel=document.getElementById('pea-nm-sel');
+        if(sel){
+          const exists=Array.from(sel.options).find(o=>o.value===tx.data.name);
+          if(exists)sel.value=tx.data.name;
+          else{sel.value='__new__';document.getElementById('pea-nm-new').style.display='';document.getElementById('pea-nm-new').value=tx.data.name;}
+        }
+        if(tx.data.ticker)document.getElementById('pea-tk').value=tx.data.ticker;
+        document.getElementById('pea-qt').value=tx.data.parts;
+        document.getElementById('pea-av').value=tx.data.price;
+        document.getElementById('pea-fr').value=tx.data.frais||0;
+        document.getElementById('pea-qt').focus();
+      }
+    },200);
+  }
+  showM('Transaction annulee, modifie et valide le formulaire','s');
+}
+function reverseTx(tx){
+  try{
+    if(tx.account==='pee'){
+      const d=ls('mick_pee',PEE);
+      if(tx.type==='add'){
+        const i=d.findIndex(f=>f.name===tx.data.fundName);
+        if(i<0)return{ok:false,error:'Fonds '+tx.data.fundName+' introuvable'};
+        d[i].val=(d[i].val||0)-tx.data.amount;
+        d[i].inv=(d[i].inv||0)-tx.data.amount;
+        ss('mick_pee',d);return{ok:true};
+      }
+      if(tx.type==='transfer'){
+        const fi=d.findIndex(f=>f.name===tx.data.fromName);
+        const ti=d.findIndex(f=>f.name===tx.data.toName);
+        if(fi<0||ti<0)return{ok:false,error:'Fonds source ou destination introuvable'};
+        d[fi].val+=tx.data.amount;d[fi].inv+=tx.data.invTransfer;
+        d[ti].val-=tx.data.amount;d[ti].inv-=tx.data.invTransfer;
+        ss('mick_pee',d);return{ok:true};
+      }
+      if(tx.type==='create'){
+        const i=d.findIndex(f=>f.name===tx.data.fundName);
+        if(i<0)return{ok:false,error:'Fonds deja supprime'};
+        d.splice(i,1);ss('mick_pee',d);return{ok:true};
+      }
+    }
+    if(tx.account==='pea'){
+      if(tx.type==='deposit'){
+        const espIdx=PEAD.findIndex(p=>p.name.toLowerCase().includes('espece'));
+        if(espIdx<0)return{ok:false,error:'Compte especes PEA introuvable'};
+        PEAD[espIdx].val-=tx.data.amount;PEAD[espIdx].inv-=tx.data.amount;
+        ss('mick_pead',PEAD);return{ok:true};
+      }
+      if(tx.type==='buy'){
+        const idx=PEAD.findIndex(p=>p.name.toLowerCase()===tx.data.name.toLowerCase());
+        if(idx<0)return{ok:false,error:'Position '+tx.data.name+' introuvable'};
+        const pos=PEAD[idx];
+        const parts=tx.data.parts;
+        if(pos.parts&&pos.parts>parts){
+          const prixAchat=pos.inv/pos.parts;
+          pos.parts-=parts;pos.inv-=prixAchat*parts;pos.val-=tx.data.montant;
+        }else{PEAD.splice(idx,1);}
+        const espIdx=PEAD.findIndex(p=>p.name.toLowerCase().includes('espece'));
+        if(espIdx>=0){PEAD[espIdx].val+=tx.data.inv;PEAD[espIdx].inv+=tx.data.inv;}
+        ss('mick_pead',PEAD);return{ok:true};
+      }
+    }
+    if(tx.account==='tr'&&tx.type==='buy'){
+      const sub=tx.data.subtype;
+      const arr=sub==='act'?TRA:sub==='etf'?TRE:sub==='obl'?TRO:TRP;
+      const key=sub==='act'?'mick_tra':sub==='etf'?'mick_tre':sub==='obl'?'mick_tro':'mick_trp';
+      const idx=arr.findIndex(a=>a.name.toLowerCase()===tx.data.name.toLowerCase());
+      if(idx<0)return{ok:false,error:'Position '+tx.data.name+' introuvable'};
+      const pos=arr[idx];
+      if(pos.qty&&pos.qty>tx.data.qty){
+        const prixAchat=pos.inv/pos.qty;
+        pos.qty-=tx.data.qty;pos.inv-=prixAchat*tx.data.qty;pos.val-=tx.data.montant;
+      }else{arr.splice(idx,1);}
+      ss(key,arr);
+      /* Undo frais */
+      if(tx.data.frais>0){const li=TRB.fraisM.length-1;TRB.fraisM[li]-=tx.data.frais;ss('mick_trb',TRB);}
+      return{ok:true};
+    }
+    return{ok:false,error:'Type de transaction non gere'};
+  }catch(e){return{ok:false,error:e.message};}
+}
 function addToPEEFund(){
   const d=ls('mick_pee',PEE);
   const idx=parseInt(document.getElementById('pee-add-fund').value);
@@ -2418,6 +2631,7 @@ function addToPEEFund(){
   d[idx].val=(d[idx].val||0)+amt;
   d[idx].inv=(d[idx].inv||0)+amt;
   ss('mick_pee',d);
+  recordTx({account:'pee',type:'add',description:'Versement '+fe(amt)+' sur '+d[idx].name,data:{fundName:d[idx].name,amount:amt}});
   showM('Versement '+fe(amt)+' sur '+d[idx].name,'s');
   document.getElementById('pee-add-amt').value='';
   rMgrPEE();rPEE();rOv();
@@ -2430,13 +2644,14 @@ function transferPEE(){
   if(fromIdx===toIdx){showM('Source et destination identiques','i');return;}
   if(amt<=0){showM('Montant invalide','i');return;}
   if(d[fromIdx].val<amt-0.01){showM('Montant insuffisant dans '+d[fromIdx].name+' ('+fe(d[fromIdx].val)+')','i');return;}
-  /* Calculer la part d'investi proportionnelle */
   const ratio=d[fromIdx].val>0?amt/d[fromIdx].val:1;
   const invTransfer=d[fromIdx].inv*ratio;
+  const fromName=d[fromIdx].name,toName=d[toIdx].name;
   d[fromIdx].val-=amt;d[fromIdx].inv-=invTransfer;
   d[toIdx].val+=amt;d[toIdx].inv+=invTransfer;
   ss('mick_pee',d);
-  showM('Transfert '+fe(amt)+' : '+d[fromIdx].name+' → '+d[toIdx].name,'s');
+  recordTx({account:'pee',type:'transfer',description:'Transfert '+fe(amt)+' : '+fromName+' → '+toName,data:{fromName,toName,amount:amt,invTransfer}});
+  showM('Transfert '+fe(amt)+' : '+fromName+' → '+toName,'s');
   document.getElementById('pee-tf-amt').value='';
   rMgrPEE();rPEE();rOv();
 }
@@ -2467,6 +2682,7 @@ function addTR(){
     else{TRP.push({name,val:montant,inv});ss('mick_trp',TRP);}
     /* Frais dans revenus */
     if(frais>0){const li=TRB.fraisM.length-1;TRB.fraisM[li]+=frais;ss('mick_trb',TRB);}
+    recordTx({account:'tr',type:'buy',description:'Achat TR '+name+' : '+qty+' × '+fe(price)+' = '+fe(inv),data:{subtype:type,name,ticker,qty,price,montant,inv,frais,coupon:type==='obl'?(document.getElementById('tr-cp').value.trim()||'—'):null}});
     showM('Achat '+name+' ('+fe(inv)+') enregistre !','s');
   }else{
     /* VENTE */
@@ -2488,6 +2704,7 @@ function addTR(){
     if(benefice!==0){TRB.ventM[li]+=benefice;}
     if(frais>0){TRB.fraisM[li]+=frais;}
     ss('mick_trb',TRB);
+    recordTx({account:'tr',type:'sell',description:'Vente TR '+name+' : '+qty+' × '+fe(price)+' = '+fe(montant)+' (benef '+(benefice>=0?'+':'')+fe(benefice)+')',data:{subtype:type,name,qty,price,montant,frais,benefice,prixAchat},reversible:false});
     showM('Vente '+name+' : '+fe(montant)+' (benefice: '+(benefice>=0?'+':'')+fe(benefice)+', frais: '+fe(frais)+')','s');
   }
   ['tr-tk','tr-qt','tr-av','tr-cp'].forEach(id=>document.getElementById(id).value='');
@@ -2506,6 +2723,7 @@ function addPEA(){
     if(espIdx>=0){PEAD[espIdx].val+=montant;PEAD[espIdx].inv+=montant;}
     else{PEAD.push({name:'Especes PEA',t:null,parts:null,val:montant,inv:montant});}
     ss('mick_pead',PEAD);
+    recordTx({account:'pea',type:'deposit',description:'Versement especes PEA : '+fe(montant),data:{amount:montant}});
     showM('Versement '+fe(montant)+' credite sur Especes PEA !','s');
     document.getElementById('pea-av').value='';
     document.getElementById('pea-op').value='buy';onPEAOpChange();
@@ -2524,6 +2742,7 @@ function addPEA(){
     const espIdx=PEAD.findIndex(p=>p.name.toLowerCase().includes('espece'));
     if(espIdx>=0){PEAD[espIdx].val-=inv;PEAD[espIdx].inv-=inv;}
     ss('mick_pead',PEAD);
+    recordTx({account:'pea',type:'buy',description:'Achat PEA '+name+' : '+parts+' × '+fe(price)+' = '+fe(inv),data:{name,ticker,parts,price,montant,inv,frais}});
     showM('Achat '+name+' ('+fe(inv)+') enregistre au PEA !','s');
   }else{
     /* VENTE PEA */
@@ -2542,6 +2761,7 @@ function addPEA(){
     if(espIdx>=0){PEAD[espIdx].val+=produitNet;PEAD[espIdx].inv+=produitNet;}
     else{PEAD.push({name:'Especes PEA',t:null,parts:null,val:produitNet,inv:produitNet});}
     ss('mick_pead',PEAD);
+    recordTx({account:'pea',type:'sell',description:'Vente PEA '+name+' : '+parts+' × '+fe(price)+' = '+fe(montant)+' net '+fe(produitNet),data:{name,parts,price,montant,frais,produitNet,prixAchat},reversible:false});
     showM('Vente '+name+' : '+fe(montant)+' net '+fe(produitNet)+' (frais: '+fe(frais)+') -> Especes PEA','s');
   }
   document.getElementById('pea-nm-sel').value='';document.getElementById('pea-nm-new').style.display='none';
@@ -2550,7 +2770,7 @@ function addPEA(){
 }
 function delPEA(i){PEAD.splice(i,1);ss('mick_pead',PEAD);rMgr();rPEA();rOv();}
 function savePEE(){const d=ls('mick_pee',PEE).map((f,i)=>{const pe=document.getElementById('pee-p-'+i),pn=document.getElementById('pee-n-'+i),ve=document.getElementById('pee-v-'+i);const newParts=pe&&pe.value!==''?parseFloat(pe.value):f.parts;const manualNav=pn&&pn.value!==''?parseFloat(pn.value):f.nav;const autoNav=newParts&&newParts>0&&PEENAV[f.name]?PEENAV[f.name].nav:null;const activeNav=autoNav||manualNav;const newVal=activeNav&&newParts&&newParts>0?+(newParts*activeNav).toFixed(2):(ve?parseFloat(ve.value)||f.val:f.val);return{...f,parts:isNaN(newParts)?f.parts:newParts,nav:isNaN(manualNav)?f.nav:manualNav,val:newVal};});ss('mick_pee',d);showM('PEE sauvegarde !','s');rMgrPEE();rPEE();rOv();}
-function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv,parts:null,code:null});ss('mick_pee',d);showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
+function addPEEFund(){const name=document.getElementById('pee-nm').value.trim(),val=parseFloat(document.getElementById('pee-vl').value)||0,inv=parseFloat(document.getElementById('pee-iv').value)||0;if(!name){showM('Nom obligatoire','i');return;}const d=ls('mick_pee',PEE);d.push({name,val,inv,parts:null,code:null});ss('mick_pee',d);recordTx({account:'pee',type:'create',description:'Nouveau fonds : '+name+' (val '+fe(val)+', inv '+fe(inv)+')',data:{fundName:name,val,inv}});showM(name+' ajoute au PEE !','s');['pee-nm','pee-vl','pee-iv'].forEach(id=>document.getElementById(id).value='');rMgr();rPEE();rOv();}
 function delPEE(i){const d=ls('mick_pee',PEE);d.splice(i,1);ss('mick_pee',d);rMgr();rPEE();rOv();}
 function showM(msg,t){
   const el=document.getElementById('msg');
