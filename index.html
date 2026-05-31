@@ -749,6 +749,13 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
         <div id="tr-frw"><label>Frais (EUR)</label><input id="tr-fr" type="number" step="0.01" value="0"></div>
         <div><button class="btnp" onclick="addTR()">Valider</button></div>
       </div>
+      <div class="sl" style="margin-top:1.5rem">Retrait / Correction</div>
+      <div class="info">Retire un montant d'une position (val. + investi diminuent). Utile pour corriger une erreur de saisie.</div>
+      <div class="frow">
+        <div><label>Position</label><select id="tr-sub-pos"></select></div>
+        <div><label>Montant a retirer (EUR)</label><input id="tr-sub-amt" type="number" step="0.01" placeholder="50.00"></div>
+        <div><button class="btnp" onclick="subFromTRPos()" style="background:linear-gradient(135deg,#f87171,#ef4444)">Retirer</button></div>
+      </div>
       <div class="sl">Positions Trade Republic</div>
       <div class="tbl-card"><table><thead><tr><th>Type</th><th>Nom</th><th>Ticker</th><th>Parts</th><th>Prix achat</th><th>Investi</th><th></th></tr></thead><tbody id="tb-trm"></tbody></table></div>
     </div>
@@ -772,6 +779,13 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
       <div><label>Prix unitaire (EUR)</label><input id="pea-av" type="number" step="any"></div>
       <div><label>Frais (EUR)</label><input id="pea-fr" type="number" step="0.01" value="0"></div>
       <div><button class="btnp" onclick="addPEA()">Valider</button></div>
+    </div>
+    <div class="sl" style="margin-top:1.5rem">Retrait / Correction</div>
+    <div class="info">Retire un montant d'une position PEA (val. + investi diminuent). Utile pour corriger une erreur.</div>
+    <div class="frow">
+      <div><label>Position</label><select id="pea-sub-pos"></select></div>
+      <div><label>Montant a retirer (EUR)</label><input id="pea-sub-amt" type="number" step="0.01" placeholder="50.00"></div>
+      <div><button class="btnp" onclick="subFromPEAPos()" style="background:linear-gradient(135deg,#f87171,#ef4444)">Retirer</button></div>
     </div>
     <div class="sl">Positions PEA</div>
     <div class="tbl-card"><table><thead><tr><th>Nom</th><th>Ticker</th><th>Parts</th><th>Prix achat</th><th>Investi</th><th></th></tr></thead><tbody id="tb-peam"></tbody></table></div>
@@ -2368,6 +2382,15 @@ function rMgrTR(){
   const row=(arr,type,label,color)=>{arr.forEach((a,i)=>{const inv=a.qty&&a.avgBuy?a.qty*a.avgBuy:a.inv;h+=`<tr><td><span class="bdg" style="background:${color};color:var(--text)">${label}</span></td><td><span class="nm">${a.name}</span></td><td>${a.t||'—'}</td><td style="text-align:right">${a.qty?fq(a.qty):'—'}</td><td style="text-align:right">${a.avgBuy?fpx(a.avgBuy):(a.coupon||'—')}</td><td style="text-align:right">${fe(inv)}</td><td><button class="btnd" onclick="delTR('${type}',${i})">Suppr.</button></td></tr>`;});};
   row(TRA,'act','Action','rgba(167,139,250,.15)');row(TRE,'etf','ETF','rgba(91,108,240,.15)');row(TRO,'obl','Oblig.','rgba(240,194,127,.15)');row(TRP,'pe','PE','rgba(52,211,153,.12)');
   document.getElementById('tb-trm').innerHTML=h||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:1.5rem">Aucune position</td></tr>';
+  /* Remplissage select Retrait/Correction TR */
+  const subSel=document.getElementById('tr-sub-pos');
+  if(subSel){
+    let opts='';
+    [['act',TRA,'Action'],['etf',TRE,'ETF'],['obl',TRO,'Oblig.'],['pe',TRP,'PE']].forEach(([t,arr,lbl])=>{
+      arr.forEach((p,i)=>{opts+=`<option value="${t}:${i}">[${lbl}] ${p.name} — ${fe(p.val||0)}</option>`;});
+    });
+    subSel.innerHTML=opts||'<option value="">Aucune position</option>';
+  }
 }
 function onPEAOpChange(){
   const op=document.getElementById('pea-op').value;
@@ -2417,6 +2440,11 @@ function rMgrPEA(){
   const esp=PEAD.find(p=>p.name.toLowerCase().includes('espece'));
   if(espEl&&esp)espEl.value=esp.val;
   if(invEl){const totalInv=PEAD.reduce((s,p)=>s+(p.inv||0),0);invEl.value=totalInv.toFixed(2);}
+  /* Remplissage select Retrait/Correction PEA */
+  const subSel=document.getElementById('pea-sub-pos');
+  if(subSel){
+    subSel.innerHTML=PEAD.map((p,i)=>`<option value="${i}">${p.name} — ${fe(p.val||0)}</option>`).join('')||'<option value="">Aucune position</option>';
+  }
 }
 function rMgrPEE(){
   const d=ls('mick_pee',PEE);
@@ -2606,6 +2634,17 @@ function reverseTx(tx){
         PEAD[espIdx].val-=tx.data.amount;PEAD[espIdx].inv-=tx.data.amount;
         ss('mick_pead',PEAD);return{ok:true};
       }
+      if(tx.type==='withdraw'){
+        const i=PEAD.findIndex(p=>p.name===tx.data.name);
+        if(i<0){
+          /* Position supprimée à cause du retrait — la recréer */
+          PEAD.push({name:tx.data.name,t:null,parts:null,val:tx.data.amount,inv:tx.data.amount});
+        }else{
+          PEAD[i].val=(PEAD[i].val||0)+tx.data.amount;
+          PEAD[i].inv=(PEAD[i].inv||0)+tx.data.amount;
+        }
+        ss('mick_pead',PEAD);return{ok:true};
+      }
       if(tx.type==='buy'){
         const idx=PEAD.findIndex(p=>p.name.toLowerCase()===tx.data.name.toLowerCase());
         if(idx<0)return{ok:false,error:'Position '+tx.data.name+' introuvable'};
@@ -2619,6 +2658,21 @@ function reverseTx(tx){
         if(espIdx>=0){PEAD[espIdx].val+=tx.data.inv;PEAD[espIdx].inv+=tx.data.inv;}
         ss('mick_pead',PEAD);return{ok:true};
       }
+    }
+    if(tx.account==='tr'&&tx.type==='withdraw'){
+      const sub=tx.data.subtype;
+      const arr=sub==='act'?TRA:sub==='etf'?TRE:sub==='obl'?TRO:TRP;
+      const key=sub==='act'?'mick_tra':sub==='etf'?'mick_tre':sub==='obl'?'mick_tro':'mick_trp';
+      const i=arr.findIndex(p=>p.name===tx.data.name);
+      if(i<0){
+        /* Position supprimée à cause du retrait — recréer minimaliste */
+        const newPos={name:tx.data.name,val:tx.data.amount,inv:tx.data.amount};
+        arr.push(newPos);
+      }else{
+        arr[i].val=(arr[i].val||0)+tx.data.amount;
+        arr[i].inv=(arr[i].inv||0)+tx.data.amount;
+      }
+      ss(key,arr);return{ok:true};
     }
     if(tx.account==='tr'&&tx.type==='buy'){
       const sub=tx.data.subtype;
@@ -2652,6 +2706,63 @@ function addToPEEFund(){
   showM('Versement '+fe(amt)+' sur '+d[idx].name,'s');
   document.getElementById('pee-add-amt').value='';
   rMgrPEE();rPEE();rOv();
+}
+function subFromTRPos(){
+  const sel=document.getElementById('tr-sub-pos');
+  const v=sel.value;
+  if(!v){showM('Selectionne une position','i');return;}
+  const [type,idx]=v.split(':');
+  const i=parseInt(idx,10);
+  const arr=type==='act'?TRA:type==='etf'?TRE:type==='obl'?TRO:TRP;
+  const key=type==='act'?'mick_tra':type==='etf'?'mick_tre':type==='obl'?'mick_tro':'mick_trp';
+  if(!arr[i]){showM('Position introuvable','i');return;}
+  const amt=parseFloat(document.getElementById('tr-sub-amt').value)||0;
+  if(amt<=0){showM('Montant invalide','i');return;}
+  const pos=arr[i];
+  const cur=pos.val||0;
+  if(amt>cur+0.01){
+    if(!confirm('Le montant ('+fe(amt)+') depasse la valeur actuelle ('+fe(cur)+').\n\nContinuer ? Les valeurs peuvent devenir negatives.'))return;
+  }
+  const posName=pos.name;
+  /* Reduit val et inv. Pour les positions avec qty, on reduit qty au prorata */
+  if(pos.qty&&pos.val>0){
+    const ratio=amt/pos.val;
+    pos.qty=pos.qty*(1-ratio);
+    if(pos.qty<0.0001)pos.qty=0;
+  }
+  pos.val=cur-amt;
+  pos.inv=(pos.inv||0)-amt;
+  if(pos.val<=0.01&&pos.inv<=0.01){arr.splice(i,1);}
+  ss(key,arr);
+  recordTx({account:'tr',type:'withdraw',description:'Retrait / correction '+fe(amt)+' sur '+posName,data:{subtype:type,name:posName,amount:amt}});
+  showM('Retrait '+fe(amt)+' sur '+posName,'s');
+  document.getElementById('tr-sub-amt').value='';
+  rMgrTR();rTR();rOv();
+}
+function subFromPEAPos(){
+  const idx=parseInt(document.getElementById('pea-sub-pos').value);
+  if(isNaN(idx)||!PEAD[idx]){showM('Selectionne une position','i');return;}
+  const amt=parseFloat(document.getElementById('pea-sub-amt').value)||0;
+  if(amt<=0){showM('Montant invalide','i');return;}
+  const pos=PEAD[idx];
+  const cur=pos.val||0;
+  if(amt>cur+0.01){
+    if(!confirm('Le montant ('+fe(amt)+') depasse la valeur actuelle ('+fe(cur)+').\n\nContinuer ? Les valeurs peuvent devenir negatives.'))return;
+  }
+  const posName=pos.name;
+  if(pos.parts&&pos.val>0){
+    const ratio=amt/pos.val;
+    pos.parts=pos.parts*(1-ratio);
+    if(pos.parts<0.0001)pos.parts=0;
+  }
+  pos.val=cur-amt;
+  pos.inv=(pos.inv||0)-amt;
+  if(pos.val<=0.01&&pos.inv<=0.01&&!posName.toLowerCase().includes('espece')){PEAD.splice(idx,1);}
+  ss('mick_pead',PEAD);
+  recordTx({account:'pea',type:'withdraw',description:'Retrait / correction '+fe(amt)+' sur '+posName,data:{name:posName,amount:amt}});
+  showM('Retrait '+fe(amt)+' sur '+posName,'s');
+  document.getElementById('pea-sub-amt').value='';
+  rMgrPEA();rPEA();rOv();
 }
 function subFromPEEFund(){
   const d=ls('mick_pee',PEE);
@@ -2709,12 +2820,41 @@ function addTR(){
   if(!name){showM('Nom obligatoire','i');return;}
   const montant=qty*price;
   if(op==='buy'){
-    /* ACHAT */
+    /* ACHAT — fusionne avec position existante de meme nom */
     const inv=montant+frais;
-    if(type==='act'){TRA.push({name,t:ticker,qty,val:montant,inv});ss('mick_tra',TRA);}
-    else if(type==='etf'){TRE.push({name,t:ticker,qty,avgBuy:price,val:montant,inv});ss('mick_tre',TRE);}
-    else if(type==='obl'){const cp=document.getElementById('tr-cp').value.trim()||'—';TRO.push({name,coupon:cp,val:montant||inv,inv:montant||inv});ss('mick_tro',TRO);}
-    else{TRP.push({name,val:montant,inv});ss('mick_trp',TRP);}
+    if(type==='act'){
+      const i=TRA.findIndex(a=>a.name.toLowerCase()===name.toLowerCase());
+      if(i>=0){TRA[i].qty=(TRA[i].qty||0)+qty;TRA[i].val=(TRA[i].val||0)+montant;TRA[i].inv=(TRA[i].inv||0)+inv;if(ticker&&!TRA[i].t)TRA[i].t=ticker;}
+      else TRA.push({name,t:ticker,qty,val:montant,inv});
+      ss('mick_tra',TRA);
+    }
+    else if(type==='etf'){
+      const i=TRE.findIndex(e=>e.name.toLowerCase()===name.toLowerCase());
+      if(i>=0){
+        const oldQty=TRE[i].qty||0,oldCost=(TRE[i].avgBuy||0)*oldQty;
+        const newQty=oldQty+qty;
+        TRE[i].qty=newQty;
+        TRE[i].avgBuy=newQty>0?(oldCost+montant)/newQty:price;
+        TRE[i].val=(TRE[i].val||0)+montant;
+        TRE[i].inv=(TRE[i].inv||0)+inv;
+        if(ticker&&!TRE[i].t)TRE[i].t=ticker;
+      }else TRE.push({name,t:ticker,qty,avgBuy:price,val:montant,inv});
+      ss('mick_tre',TRE);
+    }
+    else if(type==='obl'){
+      const cp=document.getElementById('tr-cp').value.trim()||'—';
+      const i=TRO.findIndex(o=>o.name.toLowerCase()===name.toLowerCase());
+      const add=montant||inv;
+      if(i>=0){TRO[i].val=(TRO[i].val||0)+add;TRO[i].inv=(TRO[i].inv||0)+add;if(cp&&cp!=='—')TRO[i].coupon=cp;}
+      else TRO.push({name,coupon:cp,val:add,inv:add});
+      ss('mick_tro',TRO);
+    }
+    else{
+      const i=TRP.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
+      if(i>=0){TRP[i].val=(TRP[i].val||0)+montant;TRP[i].inv=(TRP[i].inv||0)+inv;}
+      else TRP.push({name,val:montant,inv});
+      ss('mick_trp',TRP);
+    }
     /* Frais dans revenus */
     if(frais>0){const li=TRB.fraisM.length-1;TRB.fraisM[li]+=frais;ss('mick_trb',TRB);}
     recordTx({account:'tr',type:'buy',description:'Achat TR '+name+' : '+qty+' × '+fe(price)+' = '+fe(inv),data:{subtype:type,name,ticker,qty,price,montant,inv,frais,coupon:type==='obl'?(document.getElementById('tr-cp').value.trim()||'—'):null}});
@@ -2770,9 +2910,21 @@ function addPEA(){
   if(!name){showM('Choisissez ou saisissez un ETF','i');return;}
   const montant=parts*price;
   if(op==='buy'){
-    /* ACHAT PEA */
+    /* ACHAT PEA — fusionne avec position existante de meme nom */
     const inv=montant+frais;
-    PEAD.push({name,t:ticker,parts:parts||null,avgBuy:price,val:montant,inv});
+    const idxExist=PEAD.findIndex(p=>p.name.toLowerCase()===name.toLowerCase()&&!p.name.toLowerCase().includes('espece'));
+    if(idxExist>=0){
+      const oldParts=PEAD[idxExist].parts||0;
+      const oldCost=(PEAD[idxExist].avgBuy||0)*oldParts;
+      const newParts=oldParts+parts;
+      PEAD[idxExist].parts=newParts;
+      PEAD[idxExist].avgBuy=newParts>0?(oldCost+montant)/newParts:price;
+      PEAD[idxExist].val=(PEAD[idxExist].val||0)+montant;
+      PEAD[idxExist].inv=(PEAD[idxExist].inv||0)+inv;
+      if(ticker&&!PEAD[idxExist].t)PEAD[idxExist].t=ticker;
+    }else{
+      PEAD.push({name,t:ticker,parts:parts||null,avgBuy:price,val:montant,inv});
+    }
     /* Retirer du cash especes PEA */
     const espIdx=PEAD.findIndex(p=>p.name.toLowerCase().includes('espece'));
     if(espIdx>=0){PEAD[espIdx].val-=inv;PEAD[espIdx].inv-=inv;}
