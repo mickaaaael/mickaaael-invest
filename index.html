@@ -704,15 +704,17 @@ body.hide-amounts .btn-eye{color:var(--gold);border-color:rgba(240,194,127,.3)}
     </div>
   </div>
   <div id="mgr-crypto" style="display:none">
-    <div class="sl" style="margin-top:.5rem">Modifier une position</div>
+    <div class="sl" style="margin-top:.5rem">Modifier une position <span style="font-size:10px;color:var(--neg);font-weight:600;text-transform:none;letter-spacing:0;background:rgba(248,113,113,.1);padding:3px 8px;border-radius:6px;margin-left:8px">⚠ ECRASE les valeurs</span></div>
+    <div class="info">A utiliser pour <strong>corriger</strong> les valeurs d'une position. Pour <strong>ajouter</strong> un achat, utilise plutot "Nouvelle operation" ci-dessous (calcul de moyenne ponderee automatique).</div>
     <div class="frow">
       <div><label>Plateforme</label><select id="f-pl"><option value="binance">Binance</option><option value="kraken">Kraken</option><option value="coinbase">Coinbase</option><option value="ledger">Ledger</option></select></div>
       <div><label>Crypto</label><input id="f-sy" type="text" placeholder="BTC"></div>
-      <div><label>Quantite</label><input id="f-qt" type="number" step="any"></div>
+      <div><label>Quantite totale</label><input id="f-qt" type="number" step="any"></div>
       <div><label>Achat moy. (EUR)</label><input id="f-av" type="number" step="any"></div>
       <div style="padding-bottom:0"><button class="btnp" onclick="sPos()">Enregistrer</button></div>
     </div>
-    <div class="sl">Nouvelle operation</div>
+    <div class="sl">Nouvelle operation <span style="font-size:10px;color:var(--pos);font-weight:600;text-transform:none;letter-spacing:0;background:rgba(52,211,153,.1);padding:3px 8px;border-radius:6px;margin-left:8px">✓ AJOUTE au portefeuille</span></div>
+    <div class="info">Recommande pour les achats/ventes/transferts. Calcule la moyenne ponderee automatiquement.</div>
     <div class="frow">
       <div><label>Type</label><select id="op-t" onchange="tglTr()"><option value="buy">Achat</option><option value="sell">Vente</option><option value="transfer">Transfert</option></select></div>
       <div><label>De</label><select id="op-from"><option value="binance">Binance</option><option value="kraken">Kraken</option><option value="coinbase">Coinbase</option><option value="ledger">Ledger</option></select></div>
@@ -2918,6 +2920,16 @@ function sPos(){
   if(!port[pl])port[pl]=[];
   const idx=port[pl].findIndex(c=>c.symbol===sym);
   const before=idx>=0?{qty:port[pl][idx].qty,avgBuy:port[pl][idx].avgBuy}:null;
+  /* Anti-erreur : si position existe deja, demande confirmation explicite */
+  if(before){
+    const msg='⚠ ATTENTION : tu vas ECRASER la position existante.\n\n'
+      +sym+' sur '+pl+' :\n'
+      +'  Quantite actuelle : '+before.qty+' → '+qty+'\n'
+      +'  Prix moyen actuel : '+fpx(before.avgBuy||0)+' → '+fpx(avg)+'\n\n'
+      +'Si tu voulais AJOUTER un achat, utilise plutot la section "Nouvelle operation" ci-dessous (Achat) — elle calculera la moyenne ponderee.\n\n'
+      +'Continuer l\'ecrasement ?';
+    if(!confirm(msg))return;
+  }
   if(idx>=0){port[pl][idx].qty=qty;port[pl][idx].avgBuy=avg;}else port[pl].push({symbol:sym,qty,avgBuy:avg});
   ss('mp9',port);
   recordTx({account:'crypto',type:before?'modify':'create',description:(before?'Modif':'Creation')+' position '+sym+' '+pl+(before?' (qty '+before.qty+'→'+qty+', moy '+fpx(before.avgBuy||0)+'→'+fpx(avg)+')':' (qty '+qty+', moy '+fpx(avg)+')'),data:{pl,sym,before,after:{qty,avgBuy:avg}}});
